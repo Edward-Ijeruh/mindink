@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/useAuth";
 import { useRouter } from "next/navigation";
@@ -10,7 +11,6 @@ import {
   Settings,
   Pencil,
   MapPin,
-  Info,
   UserCircle,
   AlertCircle,
 } from "lucide-react";
@@ -25,8 +25,8 @@ interface UserProfile {
 export default function ProfilePage() {
   const { user, logout } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
@@ -47,6 +47,8 @@ export default function ProfilePage() {
         }
       } catch (error) {
         console.warn("Fetching from Firestore failed, trying localStorage...");
+        console.error(error);
+        setError("Failed to load profile. Please try again later.");
 
         // Fallback: try from localStorage
         const stored = localStorage.getItem("userProfile");
@@ -54,8 +56,9 @@ export default function ProfilePage() {
           try {
             const parsed = JSON.parse(stored);
             setProfile(parsed);
-          } catch (err) {
+          } catch (error) {
             console.error("Invalid localStorage userProfile");
+            console.error(error);
           }
         } else {
           console.error("No profile data available anywhere.");
@@ -86,9 +89,11 @@ export default function ProfilePage() {
       <div className="flex items-center gap-8">
         <div>
           {profile.profileImage ? (
-            <img
+            <Image
               src={profile.profileImage}
               alt="Profile"
+              width={96}
+              height={96}
               className="w-24 h-24 rounded-full object-cover"
             />
           ) : (
@@ -111,10 +116,6 @@ export default function ProfilePage() {
 
       {/* Details */}
       <div className="mt-6 space-y-2 text-sm">
-        <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
-          <Info size={16} />
-          <span>{profile.bio || "No bio provided"}</span>
-        </div>
         <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
           <MapPin size={16} />
           <span>{profile.location || "No location set"}</span>

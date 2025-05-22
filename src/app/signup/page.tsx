@@ -42,9 +42,22 @@ export default function SignupPage() {
         location: formData.location,
       });
       toast.success("Account created!");
-    } catch (error: any) {
-      console.error(error.message);
-      toast.error(error.message || "Signup failed");
+    } catch (error: unknown) {
+      if (
+        typeof error === "object" &&
+        error !== null &&
+        "code" in error &&
+        typeof (error as { code: unknown }).code === "string"
+      ) {
+        const errorCode = (error as { code: string }).code;
+        if (errorCode === "auth/email-already-in-use") {
+          setError("Email is already in use.");
+        } else if (errorCode === "auth/weak-password") {
+          setError("Password is too weak.");
+        } else {
+          setError("Signup failed. Please try again.");
+        }
+      }
     }
   };
 

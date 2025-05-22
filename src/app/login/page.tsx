@@ -16,7 +16,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (user) router.replace("/");
-  }, [user]);
+  }, [user, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,14 +31,24 @@ export default function LoginPage() {
       setError(null); // Reset error before login attempt
       await login(email, password);
       toast.success("Logged in successfully!");
-    } catch (err: any) {
-      // Firebase Auth error messages
-      if (err.code === "auth/user-not-found") {
-        setError("No account found with that email.");
-      } else if (err.code === "auth/wrong-password") {
-        setError("Incorrect password.");
+    } catch (err: unknown) {
+      if (
+        typeof err === "object" &&
+        err !== null &&
+        "code" in err &&
+        typeof (err as { code: unknown }).code === "string"
+      ) {
+        const errorCode = (err as { code: string }).code;
+        if (errorCode === "auth/user-not-found") {
+          setError("No account found with this email.");
+        } else if (errorCode === "auth/wrong-password") {
+          setError("Incorrect password.");
+        } else {
+          setError("Login failed. Please try again.");
+        }
       } else {
-        setError("Login failed. Please try again.");
+        setError("An unexpected error occurred. Please try again.");
+        console.error("Unexpected error:", err);
       }
     }
   };

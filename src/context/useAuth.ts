@@ -4,6 +4,11 @@ import { createUserWithEmailAndPassword } from "firebase/auth";
 import { setDoc, doc, serverTimestamp } from "firebase/firestore";
 import { auth, firestore } from "@/lib/firebase";
 
+interface AdditionalData {
+  username: string;
+  location: string;
+}
+
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
@@ -12,7 +17,11 @@ export const useAuth = () => {
   return context;
 };
 
-export const signup = async (email, password, additionalData) => {
+export const signup = async (
+  email: string,
+  password: string,
+  additionalData: AdditionalData,
+) => {
   const userCredential = await createUserWithEmailAndPassword(
     auth,
     email,
@@ -24,7 +33,6 @@ export const signup = async (email, password, additionalData) => {
     email: user.email,
     username: additionalData.username,
     location: additionalData.location,
-    bio: additionalData.bio,
     profileImage: "",
     createdAt: serverTimestamp(),
   });
