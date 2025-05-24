@@ -23,63 +23,72 @@ interface UserProfile {
 }
 
 export default function ProfilePage() {
-  const { user, logout } = useAuth();
+  const { user, logout, loading } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [profileLoading, setProfileLoading] = useState(true);
   const router = useRouter();
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      if (!user) return;
+    if (loading) return; // Wait for Firebase to initialize
+    if (!user) return;
 
+    const fetchProfile = async () => {
       try {
         const docRef = doc(firestore, "users", user.uid);
         const docSnap = await getDoc(docRef);
+
         if (docSnap.exists()) {
           const profileData = docSnap.data() as UserProfile;
           setProfile(profileData);
 
-          // Save to localStorage for offline use
+          // Save for offline fallback
           localStorage.setItem("userProfile", JSON.stringify(profileData));
         } else {
-          throw new Error("No profile in Firestore");
+          throw new Error("No profile found in Firestore.");
         }
-      } catch (error) {
-        console.warn("Fetching from Firestore failed, trying localStorage...");
-        console.error(error);
-        setError("Failed to load profile. Please try again later.");
+      } catch (err) {
+        console.warn("Firestore fetch failed, trying localStorage...");
+        setError("Failed to load profile. Using offline data.");
 
-        // Fallback: try from localStorage
-        const stored = localStorage.getItem("userProfile");
-        if (stored) {
+        const cached = localStorage.getItem("userProfile");
+        if (cached) {
           try {
-            const parsed = JSON.parse(stored);
+            const parsed = JSON.parse(cached) as UserProfile;
             setProfile(parsed);
-          } catch (error) {
-            console.error("Invalid localStorage userProfile");
-            console.error(error);
+          } catch (err) {
+            console.error("Invalid cached profile", err);
           }
-        } else {
-          console.error("No profile data available anywhere.");
         }
       } finally {
-        setLoading(false);
+        setProfileLoading(false);
       }
     };
 
     fetchProfile();
-  }, [user]);
+  }, [user, loading]);
 
-  if (loading) return <div className="text-center mt-20">Loading...</div>;
+  if (loading || profileLoading) {
+    return <div className="text-center mt-20">Loading...</div>;
+  }
 
-  if (error)
+  if (!user) {
+    return (
+      <div className="text-center mt-20 text-gray-600">
+        You must be logged in to view this page.
+      </div>
+    );
+  }
+
+  if (error && !profile) {
     return (
       <div className="text-center mt-20 text-red-600 flex flex-col items-center">
         <AlertCircle size={24} />
         <p className="mt-2">{error}</p>
       </div>
     );
+  }
 
   if (!profile) return null;
 
@@ -87,21 +96,19 @@ export default function ProfilePage() {
     <main className="max-w-3xl mx-auto px-4 py-10 flex flex-col min-h-screen">
       {/* Header */}
       <div className="flex items-center gap-8">
-        <div>
-          {profile.profileImage ? (
-            <Image
-              src={profile.profileImage}
-              alt="Profile"
-              width={96}
-              height={96}
-              className="w-24 h-24 rounded-full object-cover"
-            />
-          ) : (
-            <div className="w-24 h-24 rounded-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center text-gray-600 dark:text-gray-300">
-              <UserCircle className="w-12 h-12" />
-            </div>
-          )}
-        </div>
+        {profile.profileImage ? (
+          <Image
+            src={profile.profileImage}
+            alt="Profile"
+            width={96}
+            height={96}
+            className="w-24 h-24 rounded-full object-cover"
+          />
+        ) : (
+          <div className="w-24 h-24 rounded-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center text-gray-600 dark:text-gray-300">
+            <UserCircle className="w-12 h-12" />
+          </div>
+        )}
 
         <div className="flex flex-col md:flex-row md:items-center gap-4">
           <h2 className="text-2xl font-semibold">{profile.username}</h2>
@@ -136,12 +143,38 @@ export default function ProfilePage() {
           <Settings size={18} /> Settings
         </button>
         <button
-          onClick={logout}
+          onClick={() => setShowLogoutModal(true)}
           className="flex items-center gap-2 border px-4 py-2 rounded text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900 dark:text-red-400"
         >
           <LogOut size={18} /> Logout
         </button>
       </div>
+
+      {showLogoutModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded shadow-lg text-center">
+            <p className="text-lg mb-4">Are you sure you want to log out?</p>
+            <div className="flex justify-center gap-4">
+              <button
+                onClick={async () => {
+                  await logout();
+                  setShowLogoutModal(false);
+                  router.push("/login");
+                }}
+                className="bg-red-600 text-white px-4 py-2 rounded"
+              >
+                Yes, logout
+              </button>
+              <button
+                onClick={() => setShowLogoutModal(false)}
+                className="border px-4 py-2 rounded"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
