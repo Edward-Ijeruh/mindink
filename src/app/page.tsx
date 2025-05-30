@@ -1,46 +1,74 @@
-import Link from "next/link";
+"use client";
 
-const posts = [
-  {
-    slug: "my-first-post",
-    title: "My First Blog Post",
-    date: "May 19, 2025",
-    excerpt: "Welcome to MindInk. This is where thoughts take shape...",
-  },
-  {
-    slug: "nextjs-love-story",
-    title: "Falling in Love with Next.js",
-    date: "May 20, 2025",
-    excerpt: "Next.js is the magic behind MindInk. Here’s why I chose it...",
-  },
-];
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
+import { firestore } from "@/lib/firebase";
 
-export default function HomePage() {
+interface Post {
+  id: string;
+  title: string;
+  content: string;
+  image?: string;
+  createdAt?: any;
+  author: {
+    name: string;
+  };
+}
+
+export default function FeedPage() {
+  const [posts, setPosts] = useState<Post[]>([]);
+  const router = useRouter();
+
+  useEffect(() => {
+    const postsRef = collection(firestore, "posts");
+    const q = query(postsRef, orderBy("createdAt", "desc"));
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const updatedPosts = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...(doc.data() as Omit<Post, "id">),
+      }));
+      setPosts(updatedPosts);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   return (
-    <div className="space-y-8 pt-6">
-      <h1 className="text-3xl font-bold mb-4">Recent Posts</h1>
-      {posts.map((post) => (
-        <div
-          key={post.slug}
-          className="bg-[var(--background)] border border-gray-200 dark:border-gray-800 shadow-sm rounded-lg p-5 transition-colors"
-        >
-          <Link href={`/post/${post.slug}`}>
-            <h2 className="text-2xl font-semibold text-blue-700 hover:underline">
-              {post.title}
-            </h2>
-          </Link>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            {post.date}
-          </p>
-          <p className="text-[var(--foreground)] mt-3">{post.excerpt}</p>
-          <Link
-            href={`/post/${post.slug}`}
-            className="text-blue-600 text-sm mt-2 inline-block hover:underline"
+    <main className="max-w-3xl mx-auto py-10 px-4 space-y-6">
+      <h1 className="text-2xl font-bold mb-4">Blog Feed</h1>
+      {posts.length === 0 ? (
+        <p className="text-center text-gray-500">No posts yet.</p>
+      ) : (
+        posts.map((post) => (
+          <div
+            key={post.id}
+            className="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition"
           >
-            Read more →
-          </Link>
-        </div>
-      ))}
-    </div>
+            {post.image && (
+              <img
+                src={post.image}
+                alt={post.title}
+                className="w-full h-56 object-cover"
+              />
+            )}
+            <div className="p-4">
+              <h2 className="text-xl font-semibold">{post.title}</h2>
+              <p className="text-sm text-gray-500 mb-2">
+                by {post.author?.name || "Unknown Author"}
+              </p>
+              <p className="text-gray-700 line-clamp-3">{post.content}</p>
+              <button
+                onClick={() => router.push(`/posts/${post.id}`)}
+                className="mt-3 text-blue-600 text-sm hover:underline"
+              >
+                Read more →
+              </button>
+            </div>
+          </div>
+        ))
+      )}
+    </main>
   );
 }

@@ -13,6 +13,8 @@ import {
   MapPin,
   UserCircle,
   AlertCircle,
+  Mail,
+  FileText,
 } from "lucide-react";
 
 interface UserProfile {
@@ -20,6 +22,7 @@ interface UserProfile {
   username: string;
   location?: string;
   profileImage?: string;
+  bio?: string;
 }
 
 export default function ProfilePage() {
@@ -110,11 +113,11 @@ export default function ProfilePage() {
           </div>
         )}
 
-        <div className="flex flex-col md:flex-row md:items-center gap-4">
+        <div className="flex flex-col md:items-center gap-4">
           <h2 className="text-2xl font-semibold">{profile.username}</h2>
           <button
             onClick={() => router.push("/profile/edit")}
-            className="flex items-center gap-1 border px-3 py-1 rounded text-sm hover:bg-gray-100 dark:hover:bg-gray-800"
+            className="flex items-center gap-1 border px-3 w-[120px] py-1 rounded text-sm hover:bg-gray-100 dark:hover:bg-gray-800"
           >
             <Pencil size={16} /> Edit Profile
           </button>
@@ -128,9 +131,15 @@ export default function ProfilePage() {
           <span>{profile.location || "No location set"}</span>
         </div>
         <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
-          <strong>Email:</strong>
+          <Mail size={16} />
           <span>{profile.email}</span>
         </div>
+        {profile.bio && (
+          <div className="flex items-center gap-2 mt-2 text-gray-800 dark:text-gray-200">
+            <FileText size={16} />
+            <p className="text-sm whitespace-pre-line">{profile.bio}</p>
+          </div>
+        )}
       </div>
 
       <div className="h-64" />
