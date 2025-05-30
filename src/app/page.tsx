@@ -10,7 +10,7 @@ interface Post {
   title: string;
   content: string;
   image?: string;
-  createdAt?: any;
+  createdAt?: Date;
   author: {
     name: string;
   };

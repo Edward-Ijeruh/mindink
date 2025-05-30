@@ -54,6 +54,7 @@ export default function ProfilePage() {
       } catch (err) {
         console.warn("Firestore fetch failed, trying localStorage...");
         setError("Failed to load profile. Using offline data.");
+        console.error(err);
 
         const cached = localStorage.getItem("userProfile");
         if (cached) {

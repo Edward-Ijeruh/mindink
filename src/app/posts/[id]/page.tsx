@@ -4,18 +4,41 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { doc, getDoc } from "firebase/firestore";
 import { firestore } from "@/lib/firebase";
+import { Timestamp } from "firebase/firestore";
+import Image from "next/image";
+
+interface Post {
+  id: string;
+  title: string;
+  content: string;
+  image?: string;
+  createdAt?: Timestamp;
+  author: {
+    name: string;
+    id?: string;
+  };
+}
 
 export default function PostDetailPage() {
-  const { id } = useParams();
-  const [post, setPost] = useState<any>(null);
+  const { id } = useParams() as { id: string };
+  const [post, setPost] = useState<Post | null>(null);
 
   useEffect(() => {
     const fetchPost = async () => {
-      const postRef = doc(firestore, "posts", id as string);
+      const postRef = doc(firestore, "posts", id);
       const postSnap = await getDoc(postRef);
 
       if (postSnap.exists()) {
-        setPost(postSnap.data());
+        const data = postSnap.data();
+        const fullPost: Post = {
+          id: postSnap.id,
+          title: data.title,
+          content: data.content,
+          image: data.image,
+          createdAt: data.createdAt,
+          author: data.author,
+        };
+        setPost(fullPost);
       }
     };
 
@@ -27,7 +50,7 @@ export default function PostDetailPage() {
   return (
     <main className="max-w-2xl mx-auto py-10 px-4">
       {post.image && (
-        <img
+        <Image
           src={post.image}
           alt={post.title}
           className="w-full h-64 object-cover rounded"
