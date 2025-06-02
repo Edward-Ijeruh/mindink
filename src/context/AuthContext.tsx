@@ -11,6 +11,7 @@ import {
 import { auth } from "@/lib/firebase";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { firestore } from "@/lib/firebase";
+import { updateProfile } from "firebase/auth";
 
 interface AuthContextProps {
   user: User | null;
@@ -59,6 +60,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         password,
       );
       const user = userCredential.user;
+
+      await updateProfile(user, {
+        displayName: profileData.username,
+      });
 
       await setDoc(doc(firestore, "users", user.uid), {
         email: user.email,

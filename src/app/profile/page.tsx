@@ -8,7 +8,6 @@ import { doc, getDoc } from "firebase/firestore";
 import { firestore } from "@/lib/firebase";
 import {
   LogOut,
-  Settings,
   Pencil,
   MapPin,
   UserCircle,
@@ -34,7 +33,7 @@ export default function ProfilePage() {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   useEffect(() => {
-    if (loading) return; // Wait for Firebase to initialize
+    if (loading) return;
     if (!user) return;
 
     const fetchProfile = async () => {
@@ -46,7 +45,6 @@ export default function ProfilePage() {
           const profileData = docSnap.data() as UserProfile;
           setProfile(profileData);
 
-          // Save for offline fallback
           localStorage.setItem("userProfile", JSON.stringify(profileData));
         } else {
           throw new Error("No profile found in Firestore.");
@@ -97,7 +95,7 @@ export default function ProfilePage() {
   if (!profile) return null;
 
   return (
-    <main className="max-w-3xl mx-auto px-4 py-10 flex flex-col min-h-screen">
+    <main className="max-w-3xl mx-auto px-4 py-10 flex flex-col">
       {/* Header */}
       <div className="flex items-center gap-8">
         {profile.profileImage ? (
@@ -143,15 +141,7 @@ export default function ProfilePage() {
         )}
       </div>
 
-      <div className="h-64" />
-
-      <div className="mt-10 flex justify-center gap-4 border-t pt-6">
-        <button
-          onClick={() => router.push("/settings")}
-          className="flex items-center gap-2 border px-4 py-2 rounded text-sm hover:bg-gray-100 dark:hover:bg-gray-800"
-        >
-          <Settings size={18} /> Settings
-        </button>
+      <div className="mt-10 flex justify-center gap-4 border-t border-gray pt-6">
         <button
           onClick={() => setShowLogoutModal(true)}
           className="flex items-center gap-2 border px-4 py-2 rounded text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900 dark:text-red-400"

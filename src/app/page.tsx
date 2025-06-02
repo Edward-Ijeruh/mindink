@@ -61,7 +61,7 @@ export default function FeedPage() {
               <p className="text-gray-700 line-clamp-3">{post.content}</p>
               <button
                 onClick={() => router.push(`/posts/${post.id}`)}
-                className="mt-3 text-blue-600 text-sm hover:underline"
+                className="mt-3 text-blue-600 text-sm hover:underline cursor-pointer"
               >
                 Read more →
               </button>
