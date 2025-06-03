@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Home, PenLine, User } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import Loader from "@/components/Loader";
 
 const publicRoutes = ["/login", "/signup"];
 
@@ -12,6 +13,9 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
+
+  const isPublic = publicRoutes.includes(pathname);
+  const isAuthenticated = !!user;
 
   useEffect(() => {
     if (!loading) {
@@ -24,9 +28,9 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
     }
   }, [user, loading, pathname, router]);
 
-  if (loading) return <div className="text-center mt-20">Loading...</div>;
-
-  const isAuthenticated = !!user;
+  if (loading || (!isPublic && !isAuthenticated)) {
+    return <Loader />;
+  }
 
   return (
     <>
@@ -34,7 +38,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
       <header className="hidden md:block sticky top-0 z-50 bg-[var(--background)] border-b border-gray-200 dark:border-gray-800 px-6 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <Link href="/" className="text-2xl font-bold text-blue-600">
-            MindInk 🧠
+            EchoMind 🧠
           </Link>
           <nav className="flex space-x-8 items-center text-sm font-medium">
             <NavLink href="/" icon={<Home className="w-5 h-5" />} text="Home" />
@@ -58,10 +62,15 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
         </div>
       </header>
 
+      {/* Mobile Top Logo Bar */}
+      <div className="md:hidden sticky top-0 z-50 bg-[var(--background)] border-b border-gray-200 dark:border-gray-800 px-4 py-3 flex justify-center">
+        <Link href="/" className="text-xl font-bold text-blue-600">
+          EchoMind 🧠
+        </Link>
+      </div>
+
       {/* Main Content */}
-      <main className="min-h-screen pb-20 max-w-4xl mx-auto px-4">
-        {children}
-      </main>
+      <main className=" pb-20 max-w-4xl mx-auto px-4">{children}</main>
 
       {/* Mobile Bottom Navbar */}
       <nav className="md:hidden fixed bottom-0 inset-x-0 z-50 bg-[var(--background)] border-t border-gray-200 dark:border-gray-800 flex justify-around py-2">

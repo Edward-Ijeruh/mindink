@@ -5,7 +5,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import ClientLayout from "./ClientLayout";
 
 export const metadata = {
-  title: "MindInk",
+  title: "EchoMind",
   description: "Where your thoughts take shape.",
 };
 

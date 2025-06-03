@@ -15,6 +15,7 @@ import {
   Mail,
   FileText,
 } from "lucide-react";
+import Loader from "@/components/Loader";
 
 interface UserProfile {
   email: string;
@@ -72,7 +73,7 @@ export default function ProfilePage() {
   }, [user, loading]);
 
   if (loading || profileLoading) {
-    return <div className="text-center mt-20">Loading...</div>;
+    return <Loader />;
   }
 
   if (!user) {

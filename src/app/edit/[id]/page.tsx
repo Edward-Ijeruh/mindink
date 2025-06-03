@@ -6,6 +6,7 @@ import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { firestore } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import toast from "react-hot-toast";
+import Loader from "@/components/Loader";
 
 export default function EditPostPage() {
   const { id } = useParams() as { id: string };
@@ -73,7 +74,7 @@ export default function EditPostPage() {
   };
 
   if (loading) {
-    return <div className="text-center py-10">Loading...</div>;
+    return <Loader />;
   }
 
   return (

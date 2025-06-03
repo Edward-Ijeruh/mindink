@@ -14,6 +14,7 @@ export default function WritePage() {
   const [content, setContent] = useState("");
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -30,6 +31,8 @@ export default function WritePage() {
       toast.error("You must be logged in to publish a post.");
       return;
     }
+
+    setLoading(true);
 
     let imageUrl = "";
 
@@ -52,6 +55,7 @@ export default function WritePage() {
       } catch (err) {
         toast.error("Image upload failed");
         console.error("Cloudinary upload error:", err);
+        setLoading(false);
         return;
       }
     }
@@ -73,6 +77,7 @@ export default function WritePage() {
     } catch (err) {
       toast.error("Failed to publish post");
       console.error("Firestore post error:", err);
+      setLoading(false);
     }
   };
 
@@ -87,6 +92,7 @@ export default function WritePage() {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           required
+          disabled={loading}
         />
 
         <textarea
@@ -95,6 +101,7 @@ export default function WritePage() {
           value={content}
           onChange={(e) => setContent(e.target.value)}
           required
+          disabled={loading}
         />
 
         <input
@@ -102,6 +109,7 @@ export default function WritePage() {
           accept="image/*"
           onChange={handleImageChange}
           className="block w-1/2 p-2 text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-60"
+          disabled={loading}
         />
 
         {previewUrl && (
@@ -117,9 +125,10 @@ export default function WritePage() {
 
         <button
           type="submit"
-          className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
+          className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+          disabled={loading}
         >
-          Publish
+          {loading ? "Publishing..." : "Publish"}
         </button>
       </form>
     </div>

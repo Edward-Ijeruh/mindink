@@ -9,6 +9,7 @@ import { ArrowLeft } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import toast from "react-hot-toast";
 import { Edit, Trash2 } from "lucide-react";
+import Loader from "@/components/Loader";
 
 interface Post {
   id: string;
@@ -66,7 +67,7 @@ export default function PostDetailPage() {
     router.push(`/edit/${post?.id}`);
   };
 
-  if (!post) return <div className="text-center mt-20">Loading...</div>;
+  if (!post) return <Loader />;
 
   const isOwner = user?.uid === post.author.id;
 

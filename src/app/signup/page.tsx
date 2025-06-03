@@ -4,6 +4,7 @@ import { useState, ChangeEvent, FormEvent } from "react";
 import Link from "next/link";
 import { useAuth } from "@/context/useAuth";
 import toast from "react-hot-toast";
+import { Eye, EyeOff } from "lucide-react";
 
 interface SignupFormData {
   email: string;
@@ -22,19 +23,23 @@ export default function SignupPage() {
   });
   const [error, setError] = useState<string | null>(null);
 
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const [loading, setLoading] = useState(false); 
+
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-    setError(null); // Clear error on input change
+    setError(null);
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    // Simple field validation
     if (!formData.email || !formData.password || !formData.username) {
       setError("Please fill in all required fields.");
       return;
     }
+
+    setLoading(true);
 
     try {
       await signup(formData.email, formData.password, {
@@ -58,7 +63,10 @@ export default function SignupPage() {
           setError("Signup failed. Please try again.");
         }
       }
+      setLoading(false);
+      return;
     }
+    
   };
 
   return (
@@ -71,6 +79,7 @@ export default function SignupPage() {
           placeholder="Username"
           onChange={handleChange}
           className="w-full px-4 py-2 border rounded"
+          disabled={loading}
         />
         <input
           type="text"
@@ -78,6 +87,7 @@ export default function SignupPage() {
           placeholder="Location"
           onChange={handleChange}
           className="w-full px-4 py-2 border rounded"
+          disabled={loading}
         />
         <input
           type="email"
@@ -85,22 +95,37 @@ export default function SignupPage() {
           placeholder="Email"
           onChange={handleChange}
           className="w-full px-4 py-2 border rounded"
+          disabled={loading}
         />
-        <input
-          type="password"
-          name="password"
-          placeholder="Password"
-          onChange={handleChange}
-          className="w-full px-4 py-2 border rounded"
-        />
+
+        <div className="relative">
+          <input
+            type={passwordVisible ? "text" : "password"}
+            name="password"
+            placeholder="Password"
+            onChange={handleChange}
+            className="w-full px-4 py-2 border rounded pr-10"
+            disabled={loading}
+          />
+          <button
+            type="button"
+            onClick={() => setPasswordVisible((v) => !v)}
+            className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+            aria-label={passwordVisible ? "Hide password" : "Show password"}
+            disabled={loading}
+          >
+            {passwordVisible ? <EyeOff size={18} /> : <Eye size={18} />}
+          </button>
+        </div>
+
         <button
           type="submit"
-          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+          disabled={loading}
         >
-          Sign Up
+          {loading ? "Signing up..." : "Sign Up"}
         </button>
 
-        {/* Error Message */}
         {error && (
           <p className="text-red-600 text-sm mt-2 text-center">{error}</p>
         )}

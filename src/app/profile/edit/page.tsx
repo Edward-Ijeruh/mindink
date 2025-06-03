@@ -62,7 +62,6 @@ export default function EditProfilePage() {
 
   return (
     <main className="max-w-md mx-auto mt-10 px-4">
-      {/* Header with Back button and Title */}
       <div className="flex items-center justify-between mb-6">
         <button
           onClick={() => router.back()}
@@ -74,7 +73,7 @@ export default function EditProfilePage() {
         <h1 className="text-xl font-semibold text-center flex-1">
           Edit Profile
         </h1>
-        <div className="w-12" /> {/* Spacer for layout balance */}
+        <div className="w-12" /> 
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
