@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/useAuth";
 import { useRouter } from "next/navigation";
@@ -10,10 +9,10 @@ import {
   LogOut,
   Pencil,
   MapPin,
-  UserCircle,
   AlertCircle,
   Mail,
   FileText,
+  FileTextIcon,
 } from "lucide-react";
 import Loader from "@/components/Loader";
 
@@ -21,7 +20,6 @@ interface UserProfile {
   email: string;
   username: string;
   location?: string;
-  profileImage?: string;
   bio?: string;
 }
 
@@ -30,8 +28,8 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
-  const router = useRouter();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     if (loading) return;
@@ -45,7 +43,6 @@ export default function ProfilePage() {
         if (docSnap.exists()) {
           const profileData = docSnap.data() as UserProfile;
           setProfile(profileData);
-
           localStorage.setItem("userProfile", JSON.stringify(profileData));
         } else {
           throw new Error("No profile found in Firestore.");
@@ -72,9 +69,7 @@ export default function ProfilePage() {
     fetchProfile();
   }, [user, loading]);
 
-  if (loading || profileLoading) {
-    return <Loader />;
-  }
+  if (loading || profileLoading) return <Loader />;
 
   if (!user) {
     return (
@@ -98,28 +93,20 @@ export default function ProfilePage() {
   return (
     <main className="max-w-3xl mx-auto px-4 py-10 flex flex-col">
       {/* Header */}
-      <div className="flex items-center gap-8">
-        {profile.profileImage ? (
-          <Image
-            src={profile.profileImage}
-            alt="Profile"
-            width={96}
-            height={96}
-            className="w-24 h-24 rounded-full object-cover"
-          />
-        ) : (
-          <div className="w-24 h-24 rounded-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center text-gray-600 dark:text-gray-300">
-            <UserCircle className="w-12 h-12" />
-          </div>
-        )}
-
-        <div className="flex flex-col md:items-center gap-4">
-          <h2 className="text-2xl font-semibold">{profile.username}</h2>
+      <div className="flex flex-col md:items-start gap-4">
+        <h2 className="text-2xl font-semibold">Hi, {profile.username}!</h2>
+        <div className="flex gap-2">
           <button
             onClick={() => router.push("/profile/edit")}
-            className="flex items-center gap-1 border px-3 w-[120px] py-1 rounded text-sm hover:bg-gray-100 dark:hover:bg-gray-800"
+            className="flex items-center gap-1 border px-3 py-1 rounded text-sm hover:bg-gray-100 dark:hover:bg-gray-800"
           >
             <Pencil size={16} /> Edit Profile
+          </button>
+          <button
+            onClick={() => router.push("/profile/posts")}
+            className="flex items-center gap-1 border px-3 py-1 rounded text-sm hover:bg-gray-100 dark:hover:bg-gray-800"
+          >
+            <FileTextIcon size={16} /> My Posts
           </button>
         </div>
       </div>
@@ -142,6 +129,7 @@ export default function ProfilePage() {
         )}
       </div>
 
+      {/* Logout button */}
       <div className="mt-10 flex justify-center gap-4 border-t border-gray pt-6">
         <button
           onClick={() => setShowLogoutModal(true)}
@@ -151,6 +139,7 @@ export default function ProfilePage() {
         </button>
       </div>
 
+      {/* Logout confirmation modal */}
       {showLogoutModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-gray-800 p-6 rounded shadow-lg text-center">

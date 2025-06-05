@@ -12,7 +12,7 @@ export const metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <body className="bg-[var(--background)] text-[var(--foreground)]">
+      <body className="font-sans bg-white text-gray-900 dark:bg-[#121212] dark:text-white">
         <AuthProvider>
           <Toaster position="top-center" />
           <ClientLayout>{children}</ClientLayout>

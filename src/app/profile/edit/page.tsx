@@ -15,9 +15,10 @@ export default function EditProfilePage() {
   const [formData, setFormData] = useState({
     username: "",
     location: "",
-    profileImage: "",
     bio: "",
   });
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -30,7 +31,6 @@ export default function EditProfilePage() {
         setFormData({
           username: data.username || "",
           location: data.location || "",
-          profileImage: data.profileImage || "",
           bio: data.bio || "",
         });
       }
@@ -50,14 +50,23 @@ export default function EditProfilePage() {
     e.preventDefault();
     if (!user) return;
 
-    const docRef = doc(firestore, "users", user.uid);
-    await updateDoc(docRef, formData);
-    localStorage.setItem(
-      "userProfile",
-      JSON.stringify({ ...formData, email: user.email }),
-    );
-    toast.success("Profile updated!");
-    router.push("/profile");
+    setIsSubmitting(true);
+
+    try {
+      const docRef = doc(firestore, "users", user.uid);
+      await updateDoc(docRef, formData);
+      localStorage.setItem(
+        "userProfile",
+        JSON.stringify({ ...formData, email: user.email }),
+      );
+      toast.success("Profile updated!");
+      router.push("/profile");
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to update profile.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -65,15 +74,15 @@ export default function EditProfilePage() {
       <div className="flex items-center justify-between mb-6">
         <button
           onClick={() => router.back()}
-          className="flex items-center text-sm text-blue-600 hover:underline"
+          className="flex items-center text-sm hover:underline cursor-pointer"
+          disabled={isSubmitting}
         >
-          <ArrowLeft className="mr-1 w-4 h-4" />
-          Back
+          <ArrowLeft className="mr-1 w-5 h-5" />
         </button>
         <h1 className="text-xl font-semibold text-center flex-1">
           Edit Profile
         </h1>
-        <div className="w-12" /> 
+        <div className="w-8 md:w-12 lg:w-16" />
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -83,6 +92,7 @@ export default function EditProfilePage() {
           placeholder="Username"
           value={formData.username}
           onChange={handleChange}
+          disabled={isSubmitting}
           className="w-full px-4 py-2 border rounded"
         />
         <input
@@ -91,14 +101,7 @@ export default function EditProfilePage() {
           placeholder="Location"
           value={formData.location}
           onChange={handleChange}
-          className="w-full px-4 py-2 border rounded"
-        />
-        <input
-          type="text"
-          name="profileImage"
-          placeholder="Profile Image URL"
-          value={formData.profileImage}
-          onChange={handleChange}
+          disabled={isSubmitting}
           className="w-full px-4 py-2 border rounded"
         />
         <textarea
@@ -106,13 +109,15 @@ export default function EditProfilePage() {
           placeholder="Bio"
           value={formData.bio}
           onChange={handleChange}
+          disabled={isSubmitting}
           className="w-full px-4 py-2 border rounded h-24"
         />
         <button
           type="submit"
-          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+          disabled={isSubmitting}
+          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Save Changes
+          {isSubmitting ? "Saving..." : "Save Changes"}
         </button>
       </form>
     </main>

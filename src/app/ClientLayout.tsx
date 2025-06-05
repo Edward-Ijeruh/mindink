@@ -37,7 +37,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
       {/* Desktop Top Navbar */}
       <header className="hidden md:block sticky top-0 z-50 bg-[var(--background)] border-b border-gray-200 dark:border-gray-800 px-6 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <Link href="/" className="text-2xl font-bold text-blue-600">
+          <Link href="/" className="text-2xl font-bold">
             EchoMind 🧠
           </Link>
           <nav className="flex space-x-8 items-center text-sm font-medium">
@@ -64,7 +64,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
 
       {/* Mobile Top Logo Bar */}
       <div className="md:hidden sticky top-0 z-50 bg-[var(--background)] border-b border-gray-200 dark:border-gray-800 px-4 py-3 flex justify-center">
-        <Link href="/" className="text-xl font-bold text-blue-600">
+        <Link href="/" className="text-xl font-bold">
           EchoMind 🧠
         </Link>
       </div>
