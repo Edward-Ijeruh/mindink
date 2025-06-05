@@ -63,7 +63,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
       </header>
 
       {/* Mobile Top Logo Bar */}
-      <div className="md:hidden sticky top-0 z-50 bg-[var(--background)] border-b border-gray-200 dark:border-gray-800 px-4 py-3 flex justify-center">
+      <div className="md:hidden sticky top-0 z-50 bg-[var(--background)] border-b border-gray-800 dark:border-gray-800 px-4 py-3 flex justify-center">
         <Link href="/" className="text-xl font-bold">
           EchoMind 🧠
         </Link>
@@ -73,7 +73,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
       <main className=" pb-20 max-w-4xl mx-auto px-4">{children}</main>
 
       {/* Mobile Bottom Navbar */}
-      <nav className="md:hidden fixed bottom-0 inset-x-0 z-50 bg-[var(--background)] border-t border-gray-200 dark:border-gray-800 flex justify-around py-2">
+      <nav className="md:hidden fixed bottom-0 inset-x-0 z-50 bg-[var(--background)] border-t border-gray-800 dark:border-gray-800 flex justify-around py-2">
         <NavButton href="/" icon={<Home className="w-5 h-5" />} text="Home" />
         <NavButton
           href="/write"
