@@ -35,7 +35,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
   return (
     <>
       {/* Desktop Top Navbar */}
-      <header className="hidden md:block sticky top-0 z-50 bg-[var(--background)] border-b border-gray-200 dark:border-gray-800 px-6 py-4">
+      <header className="hidden md:block sticky top-0 z-50 bg-[var(--background)] border-b border-gray-800 dark:border-gray-800 px-6 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <Link href="/" className="text-2xl font-bold">
             EchoMind 🧠
