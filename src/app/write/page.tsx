@@ -125,7 +125,7 @@ export default function WritePage() {
 
         <button
           type="submit"
-          className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+          className="bg-blue-600 cursor-pointer text-white px-6 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
           disabled={loading}
         >
           {loading ? "Publishing..." : "Publish"}

@@ -98,13 +98,13 @@ export default function ProfilePage() {
         <div className="flex gap-2">
           <button
             onClick={() => router.push("/profile/edit")}
-            className="flex items-center gap-1 border px-3 py-1 rounded text-sm hover:bg-gray-100 dark:hover:bg-gray-800"
+            className="flex items-center gap-1 border px-3 py-1 rounded text-sm hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer"
           >
             <Pencil size={16} /> Edit Profile
           </button>
           <button
             onClick={() => router.push("/profile/posts")}
-            className="flex items-center gap-1 border px-3 py-1 rounded text-sm hover:bg-gray-100 dark:hover:bg-gray-800"
+            className="flex items-center gap-1 border px-3 py-1 rounded text-sm hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer"
           >
             <FileTextIcon size={16} /> My Posts
           </button>
@@ -133,7 +133,7 @@ export default function ProfilePage() {
       <div className="mt-10 flex justify-center gap-4 border-t border-gray pt-6">
         <button
           onClick={() => setShowLogoutModal(true)}
-          className="flex items-center gap-2 border px-4 py-2 rounded text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900 dark:text-red-400"
+          className="flex items-center gap-2 border px-4 py-2 rounded text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900 dark:text-red-400 cursor-pointer"
         >
           <LogOut size={18} /> Logout
         </button>
@@ -151,13 +151,13 @@ export default function ProfilePage() {
                   setShowLogoutModal(false);
                   router.push("/login");
                 }}
-                className="bg-red-600 text-white px-4 py-2 rounded"
+                className="bg-red-600 text-white px-4 py-2 rounded cursor-pointer"
               >
                 Yes, logout
               </button>
               <button
                 onClick={() => setShowLogoutModal(false)}
-                className="border px-4 py-2 rounded"
+                className="border px-4 py-2 rounded cursor-pointer"
               >
                 Cancel
               </button>
