@@ -10,7 +10,9 @@ interface Post {
   title: string;
   content: string;
   image?: string;
-  createdAt?: Date;
+  createdAt?: {
+    seconds: number;
+  };
   author: {
     name: string;
   };
@@ -56,7 +58,10 @@ export default function FeedPage() {
             <div className="p-4">
               <h2 className="text-xl font-semibold">{post.title}</h2>
               <p className="text-sm text-gray-500 mb-2">
-                by {post.author?.name || "Unknown Author"}
+                by {post.author?.name || "You"} •{" "}
+                {post.createdAt
+                  ? new Date(post.createdAt.seconds * 1000).toLocaleDateString()
+                  : "Unknown date"}
               </p>
               <p className="text-gray-300 line-clamp-3">{post.content}</p>
               <button

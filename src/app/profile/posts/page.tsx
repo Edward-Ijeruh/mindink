@@ -94,7 +94,7 @@ export default function MyPostsPage() {
                   ? new Date(post.createdAt.seconds * 1000).toLocaleDateString()
                   : "Unknown date"}
               </p>
-              <p className="text-gray-700 line-clamp-3">{post.content}</p>
+              <p className="text-gray-300 line-clamp-3">{post.content}</p>
               <button
                 onClick={() => router.push(`/post/${post.id}`)}
                 className="mt-3 text-blue-600 text-sm cursor-pointer hover:underline"

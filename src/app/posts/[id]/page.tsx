@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { doc, getDoc, deleteDoc } from "firebase/firestore";
 import { firestore } from "@/lib/firebase";
-import { Timestamp } from "firebase/firestore";
 import { ArrowLeft } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import toast from "react-hot-toast";
@@ -16,7 +15,9 @@ interface Post {
   title: string;
   content: string;
   image?: string;
-  createdAt?: Timestamp;
+  createdAt?: {
+    seconds: number;
+  };
   author: {
     name: string;
     id?: string;
@@ -89,7 +90,12 @@ export default function PostDetailPage() {
       )}
 
       <h1 className="text-3xl font-bold mt-4">{post.title}</h1>
-      <p className="text-sm text-gray-500 mt-1">by {post.author.name}</p>
+      <p className="text-sm text-gray-500 mb-2">
+        by {post.author?.name || "You"} •{" "}
+        {post.createdAt
+          ? new Date(post.createdAt.seconds * 1000).toLocaleDateString()
+          : "Unknown date"}
+      </p>
 
       {/* ✅ Conditional Edit/Delete Buttons */}
       {isOwner && (
