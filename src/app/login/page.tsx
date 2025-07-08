@@ -85,7 +85,7 @@ export default function LoginPage() {
           <button
             type="button"
             onClick={() => setPasswordVisible((v) => !v)}
-            className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+            className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-500 hover:text-gray-700 cursor-pointer"
             aria-label={passwordVisible ? "Hide password" : "Show password"}
             disabled={loading}
           >
@@ -94,7 +94,7 @@ export default function LoginPage() {
         </div>
 
         <button
-          className="bg-blue-600 w-full text-white py-2 px-4 rounded hover:bg-blue-700 disabled:opacity-50"
+          className="bg-blue-600 w-full text-white py-2 px-4 rounded hover:bg-blue-700 disabled:opacity-50 cursor-pointer"
           disabled={loading}
           type="submit"
         >
@@ -105,7 +105,10 @@ export default function LoginPage() {
 
         <p className="mt-4 text-sm text-center">
           Don’t have an account?{" "}
-          <Link href="/signup" className="text-blue-600 hover:underline">
+          <Link
+            href="/signup"
+            className="text-blue-600 hover:underline cursor-pointer"
+          >
             Sign up here
           </Link>
         </p>
