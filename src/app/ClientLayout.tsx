@@ -7,7 +7,7 @@ import { Home, PenLine, User } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import Loader from "@/components/Loader";
 
-const publicRoutes = ["/login", "/signup"];
+const publicRoutes = ["/login", "/signup", "/forgotPassword"];
 
 export default function ClientLayout({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
@@ -61,7 +61,11 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
                 pathname={pathname}
               />
             ) : (
-              <Link href="/login" className="text-blue-600 hover:underline">
+              <Link
+                href="/login"
+                className="text-blue-600 hover:underline flex gap-1 items-center"
+              >
+                <User className="w-5 h-5" />
                 Login
               </Link>
             )}
