@@ -4,11 +4,11 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { doc, getDoc, deleteDoc } from "firebase/firestore";
 import { firestore } from "@/lib/firebase";
-import { ArrowLeft } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import toast from "react-hot-toast";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, Trash2, User2 } from "lucide-react";
 import Loader from "@/components/Loader";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface Post {
   id: string;
@@ -22,6 +22,7 @@ interface Post {
     name: string;
     id?: string;
   };
+  tags?: string[];
 }
 
 export default function PostDetailPage() {
@@ -45,6 +46,7 @@ export default function PostDetailPage() {
           image: data.image,
           createdAt: data.createdAt,
           author: data.author,
+          tags: data.tags || [],
         };
         setPost(fullPost);
       }
@@ -73,78 +75,133 @@ export default function PostDetailPage() {
   const isOwner = user?.uid === post.author.id;
 
   return (
-    <main className="max-w-2xl mx-auto py-10 px-4">
-      <button
-        onClick={() => router.push("/")}
-        className="flex items-center cursor-pointer mb-4 hover:underline"
-      >
-        <ArrowLeft className="w-5 h-5 mr-1" />
-      </button>
-
-      {post.image && (
-        <img
-          src={post.image}
-          alt={post.title}
-          className="w-full h-64 object-cover rounded"
-        />
-      )}
-
-      <h1 className="text-3xl font-bold mt-4">{post.title}</h1>
-      <p className="text-sm text-gray-500 mb-2">
-        by {post.author?.name || "You"} •{" "}
-        {post.createdAt
-          ? new Date(post.createdAt.seconds * 1000).toLocaleDateString()
-          : "Unknown date"}
-      </p>
-
-      {/* ✅ Conditional Edit/Delete Buttons */}
-      {isOwner && (
-        <div className="flex gap-4 mt-4">
+    <main className="max-w-6xl mx-auto">
+      <div className="relative bg-[var(--card-bg)] border border-[var(--card-border)] p-6 rounded-2xl shadow-md text-[var(--card-text)]">
+        {/* Top: Back Button & Actions */}
+        <div className="flex justify-between items-center mb-4">
           <button
-            onClick={handleEdit}
-            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition cursor-pointer"
+            onClick={() => router.push("/")}
+            className="text-[var(--accent-main)] hover:text-[var(--accent-hover)] text-sm font-medium underline underline-offset-2 cursor-pointer"
           >
-            <Edit className="w-4 h-4" />
+            Back
           </button>
-          <button
-            onClick={() => setShowDeleteModal(true)}
-            className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition cursor-pointer"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
-        </div>
-      )}
 
-      <div className="mt-6 text-md text-gray-300 whitespace-pre-wrap">
-        {post.content}
-      </div>
-      {showDeleteModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white dark:bg-gray-900 rounded-lg p-6 max-w-sm w-full shadow-lg text-center">
-            <h2 className="text-lg font-semibold mb-4">Confirm Deletion</h2>
-            <p className="text-gray-700 dark:text-gray-300 mb-6">
-              Are you sure you want to delete this post?
-            </p>
-            <div className="flex justify-center gap-4">
+          {isOwner && (
+            <div className="flex gap-2">
               <button
-                onClick={() => setShowDeleteModal(false)}
-                className="bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-white px-4 py-2 rounded hover:bg-gray-400 dark:hover:bg-gray-600"
+                onClick={handleEdit}
+                className="px-3 py-2 rounded-lg border border-[var(--border-glass)] text-[var(--text-secondary)] hover:bg-[var(--accent-hover)]/10 transition cursor-pointer"
+                title="Edit"
               >
-                Cancel
+                <Edit className="w-4 h-4" />
               </button>
               <button
-                onClick={() => {
-                  handleDelete();
-                  setShowDeleteModal(false);
-                }}
-                className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+                onClick={() => setShowDeleteModal(true)}
+                className="px-3 py-2 rounded-lg border border-red-300 text-red-500 hover:bg-red-500/10 transition cursor-pointer"
+                title="Delete"
               >
-                Delete
+                <Trash2 className="w-4 h-4" />
               </button>
             </div>
-          </div>
+          )}
         </div>
-      )}
+
+        {/* Image */}
+        {post.image && (
+          <img
+            src={post.image}
+            alt={post.title}
+            className="w-full h-64 md:h-80 object-cover rounded-xl mb-6"
+          />
+        )}
+
+        {/* Details */}
+        <div className="flex items-center justify-between text-sm text-[var(--text-secondary)] mb-2 pb-2 border-b border-[var(--border-glass)]">
+          <div className="flex items-center gap-2">
+            <User2 size={15} />
+            <span>{post.author?.name || "You"}</span>
+          </div>
+          <span>
+            {post.createdAt
+              ? new Date(post.createdAt.seconds * 1000).toLocaleDateString(
+                  "en-US",
+                  {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                  }
+                )
+              : "Unknown"}
+          </span>
+        </div>
+
+        {/* Title */}
+        <h1 className="text-3xl font-bold mb-4 text-[var(--text-primary)]">
+          {post.title}
+        </h1>
+
+        {/* Tags */}
+        {post.tags && post.tags.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-4">
+            {post.tags.map((tag, idx) => (
+              <span
+                key={idx}
+                className="bg-[var(--accent-main)]/10 text-xs text-[var(--accent-main)] px-2 py-0.5 rounded-full"
+              >
+                #{tag}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* Content */}
+        <div className="text-md text-[var(--text-secondary)] whitespace-pre-wrap mb-4">
+          {post.content}
+        </div>
+      </div>
+
+      {/* Delete Modal */}
+      <AnimatePresence>
+        {showDeleteModal && (
+          <motion.div
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="bg-[var(--card-bg)] border border-[var(--border-glass)] text-[var(--text-primary)] rounded-2xl p-6 max-w-sm w-11/12 shadow-xl"
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <h2 className="text-xl font-semibold mb-3">Confirm Deletion</h2>
+              <p className="text-sm text-[var(--text-secondary)] mb-6">
+                Are you sure you want to delete this post? This action cannot be
+                undone.
+              </p>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  className="px-4 py-2 rounded-lg border border-[var(--border-glass)] bg-[var(--bg-glass)] hover:bg-[var(--accent-hover)]/10 transition text-sm text-[var(--text-primary)] cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    handleDelete();
+                    setShowDeleteModal(false);
+                  }}
+                  className="px-4 py-2 rounded-lg border border-red-400 bg-red-100 text-red-700 hover:bg-red-200 transition text-sm cursor-pointer"
+                >
+                  Delete
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </main>
   );
 }

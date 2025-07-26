@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/context/useAuth";
 import toast from "react-hot-toast";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, DoorOpen } from "lucide-react";
 
 export default function LoginPage() {
   const { user, login } = useAuth();
@@ -14,7 +14,6 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
-
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -37,90 +36,96 @@ export default function LoginPage() {
       await login(email, password);
       toast.success("Logged in successfully!");
     } catch (err: unknown) {
-      if (
-        typeof err === "object" &&
-        err !== null &&
-        "code" in err &&
-        typeof (err as { code: unknown }).code === "string"
-      ) {
-        const errorCode = (err as { code: string }).code;
-        if (errorCode === "auth/user-not-found") {
+      const errorCode = (err as { code?: string })?.code;
+      switch (errorCode) {
+        case "auth/user-not-found":
           setError("No account found with this email.");
-        } else if (errorCode === "auth/wrong-password") {
+          break;
+        case "auth/wrong-password":
           setError("Incorrect password.");
-        } else {
+          break;
+        default:
           setError("Login failed. Please try again.");
-        }
-      } else {
-        setError("An unexpected error occurred. Please try again.");
-        console.error("Unexpected error:", err);
       }
       setLoading(false);
-      return;
     }
   };
 
   return (
-    <div className="max-w-md mx-auto mt-10 text-center px-6">
-      <h1 className="text-2xl font-bold mb-6">Login to EchoMind 🧠</h1>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <input
-          type="email"
-          placeholder="Email"
-          className="w-full p-2 border rounded"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          disabled={loading}
-        />
+    <div
+      className="max-w-4xl mx-auto flex items-center justify-center"
+      style={{ backgroundColor: "var(--bg-dark)" }}
+    >
+      <div className="card w-full max-w-md">
+        <h1 className="flex items-center justify-center gap-2 text-xl md:text-3xl font-bold mb-6 text-center text-[var(--text-primary)]">
+          Login <DoorOpen className="w-6 h-6 md:w-8 md:h-8" />
+        </h1>
 
-        <div className="relative">
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Email */}
           <input
-            type={passwordVisible ? "text" : "password"}
-            placeholder="Password"
-            className="w-full p-2 border rounded pr-10"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            type="email"
+            placeholder="Email"
+            className="w-full p-3 rounded-md border border-[var(--text-muted)] bg-white text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-main)]"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             disabled={loading}
           />
+
+          {/* Password */}
+          <div className="relative">
+            <input
+              type={passwordVisible ? "text" : "password"}
+              placeholder="Password"
+              className="w-full p-3 rounded-md border border-[var(--text-muted)] bg-white text-[var(--text-primary)] placeholder-[var(--text-muted)] pr-10 focus:outline-none focus:ring-2 focus:ring-[var(--accent-main)]"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              disabled={loading}
+            />
+            <button
+              type="button"
+              onClick={() => setPasswordVisible((v) => !v)}
+              className="absolute top-1/2 right-3 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-secondary)] cursor-pointer"
+              aria-label={passwordVisible ? "Hide password" : "Show password"}
+              disabled={loading}
+            >
+              {passwordVisible ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
+
+          {/* Submit */}
           <button
-            type="button"
-            onClick={() => setPasswordVisible((v) => !v)}
-            className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-500 hover:text-gray-700 cursor-pointer"
-            aria-label={passwordVisible ? "Hide password" : "Show password"}
+            type="submit"
             disabled={loading}
+            className="w-full cursor-pointer py-3 rounded-md text-white bg-[var(--accent-main)] hover:bg-[var(--accent-hover)] transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {passwordVisible ? <EyeOff size={18} /> : <Eye size={18} />}
+            {loading ? "Logging in..." : "Login"}
           </button>
-        </div>
 
-        <button
-          className="bg-blue-600 w-full text-white py-2 px-4 rounded hover:bg-blue-700 disabled:opacity-50 cursor-pointer"
-          disabled={loading}
-          type="submit"
-        >
-          {loading ? "Logging in..." : "Login"}
-        </button>
+          {/* Error */}
+          {error && <p className="text-red-500 text-sm text-center">{error}</p>}
 
-        {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
+          {/* Links */}
+          <p className="text-sm text-center mt-4 mb-1 text-[var(--text-secondary)]">
+            Don’t have an account?{" "}
+            <Link
+              href="/signup"
+              className="text-[var(--accent-main)] hover:text-[var(--accent-hover)] font-medium cursor-pointer underline"
+            >
+              Sign up here
+            </Link>
+          </p>
 
-        <p className="mt-4 text-sm text-center">
-          Don’t have an account?{" "}
-          <Link
-            href="/signup"
-            className="text-blue-600 hover:underline cursor-pointer"
-          >
-            Sign up here
-          </Link>
-        </p>
-        <p className="mt-2 text-sm text-center">
-          <Link
-            href="/forgotPassword"
-            className="text-blue-600 hover:underline cursor-pointer"
-          >
-            Forgot your password?
-          </Link>
-        </p>
-      </form>
+          <p className="text-sm text-center text-[var(--text-secondary)]">
+            <Link
+              href="/forgotPassword"
+              className="text-[var(--accent-main)] hover:text-[var(--accent-hover)] font-medium cursor-pointer underline"
+            >
+              Forgot your password?
+            </Link>
+          </p>
+        </form>
+      </div>
     </div>
   );
 }

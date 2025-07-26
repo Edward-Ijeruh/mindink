@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/context/useAuth";
 import toast from "react-hot-toast";
 import Link from "next/link";
+import { KeyRound } from "lucide-react";
 
 export default function ForgotPasswordPage() {
   const { resetPassword } = useAuth();
@@ -14,7 +15,6 @@ export default function ForgotPasswordPage() {
   const [emailSent, setEmailSent] = useState(false);
   const [timer, setTimer] = useState(0);
 
-  //Reset email function
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -40,7 +40,6 @@ export default function ForgotPasswordPage() {
     }
   };
 
-  //Timer listener
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (timer > 0) {
@@ -50,40 +49,56 @@ export default function ForgotPasswordPage() {
   }, [timer]);
 
   return (
-    <div className="max-w-md mx-auto mt-10 text-center px-6">
-      <h1 className="text-2xl font-bold mb-6">Reset Your Password</h1>
-      <form onSubmit={handleReset} className="space-y-4">
-        <input
-          type="email"
-          placeholder="Enter your email"
-          className="w-full p-2 border rounded"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          disabled={loading || success}
-        />
+    <div
+      className="max-w-4xl mx-auto flex items-center justify-center px-4"
+      style={{ backgroundColor: "var(--bg-dark)" }}
+    >
+      <div className="card w-full max-w-md">
+        <h1 className="flex items-center justify-center gap-2 text-xl md:text-3xl font-bold mb-6 text-center text-[var(--text-primary)]">
+          Reset Your Password <KeyRound className="w-6 h-6 md:w-8 md:h-8" />
+        </h1>
 
-        <button
-          className="bg-blue-600 w-full text-white py-2 px-4 rounded hover:bg-blue-700 disabled:opacity-50"
-          type="submit"
-          disabled={loading || success}
-        >
-          {loading ? "Sending..." : "Send Reset Link"}
-        </button>
+        <form onSubmit={handleReset} className="space-y-5">
+          {/* Email Input */}
+          <input
+            type="email"
+            placeholder="Enter your email"
+            className="w-full p-3 rounded-md border border-[var(--text-muted)] bg-white text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-main)]"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            disabled={loading || success}
+          />
 
-        {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
+          {/* Submit Button */}
+          <button
+            type="submit"
+            className="w-full py-3 rounded-md text-white bg-[var(--accent-main)] hover:bg-[var(--accent-hover)] transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            disabled={loading || success}
+          >
+            {loading ? "Sending..." : "Send Reset Link"}
+          </button>
 
-        {emailSent && timer > 0 && (
-          <p className="text-sm text-gray-500">
-            You can resend the email in {timer} second{timer !== 1 && "s"}.
+          {/* Error */}
+          {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+
+          {/* Timer */}
+          {emailSent && timer > 0 && (
+            <p className="text-sm text-center text-[var(--text-secondary)]">
+              You can resend the email in {timer} second{timer !== 1 && "s"}.
+            </p>
+          )}
+
+          {/* Back to login */}
+          <p className="mt-4 text-sm text-center text-[var(--text-secondary)]">
+            <Link
+              href="/login"
+              className="text-[var(--accent-main)] hover:text-[var(--accent-hover)] font-medium cursor-pointer underline"
+            >
+              Back to login
+            </Link>
           </p>
-        )}
-
-        <p className="mt-4 text-sm text-center">
-          <Link href="/login" className="text-blue-600 hover:underline">
-            Back to login
-          </Link>
-        </p>
-      </form>
+        </form>
+      </div>
     </div>
   );
 }

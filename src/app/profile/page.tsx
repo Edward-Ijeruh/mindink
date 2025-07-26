@@ -15,6 +15,7 @@ import {
   FileTextIcon,
 } from "lucide-react";
 import Loader from "@/components/Loader";
+import { AnimatePresence, motion } from "framer-motion";
 
 interface UserProfile {
   email: string;
@@ -73,7 +74,7 @@ export default function ProfilePage() {
 
   if (!user) {
     return (
-      <div className="text-center mt-20 text-gray-600">
+      <div className="text-center mt-20 text-[var(--text-muted)]">
         You must be logged in to view this page.
       </div>
     );
@@ -91,80 +92,114 @@ export default function ProfilePage() {
   if (!profile) return null;
 
   return (
-    <main className="max-w-3xl mx-auto px-4 py-10 flex flex-col">
-      {/* Header */}
-      <div className="flex flex-col md:items-start gap-4">
-        <h2 className="text-2xl font-semibold">Hi, {profile.username}!</h2>
-        <div className="flex gap-2">
-          <button
-            onClick={() => router.push("/profile/edit")}
-            className="flex items-center gap-1 border px-3 py-1 rounded text-sm hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer"
-          >
-            <Pencil size={16} /> Edit Profile
-          </button>
-          <button
-            onClick={() => router.push("/profile/posts")}
-            className="flex items-center gap-1 border px-3 py-1 rounded text-sm hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer"
-          >
-            <FileTextIcon size={16} /> My Posts
-          </button>
-        </div>
-      </div>
-
-      {/* Details */}
-      <div className="mt-6 space-y-2 text-sm">
-        <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
-          <MapPin size={16} />
-          <span>{profile.location || "No location set"}</span>
-        </div>
-        <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
-          <Mail size={16} />
-          <span>{profile.email}</span>
-        </div>
-        {profile.bio && (
-          <div className="flex items-center gap-2 mt-2 text-gray-800 dark:text-gray-200">
-            <FileText size={16} />
-            <p className="text-sm whitespace-pre-line">{profile.bio}</p>
+    <main className="max-w-6xl mx-auto flex flex-col">
+      <div
+        className="bg-[var(--card-bg)] shadow-lg rounded-[var(--card-radius)] p-6 sm:p-8 border border-[var(--card-border)]"
+        style={{ boxShadow: "var(--card-shadow)" }}
+      >
+        {/* Profile Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[var(--border-glass)] pb-4">
+          <div>
+            <h2 className="text-xl md:text-3xl font-bold text-[var(--text-primary)]">
+              Hi, {profile.username}!
+            </h2>
+            <p className="text-sm text-[var(--text-secondary)]">
+              Welcome to your profile.
+            </p>
           </div>
-        )}
-      </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => router.push("/profile/edit")}
+              className="flex items-center gap-1 border border-[var(--border-glass)] px-3 py-1.5 rounded text-sm text-[var(--text-primary)] hover:bg-[var(--accent-hover)]/10 transition  cursor-pointer"
+            >
+              <Pencil size={16} /> Edit Profile
+            </button>
+            <button
+              onClick={() => router.push("/profile/posts")}
+              className="flex items-center gap-1 border border-[var(--border-glass)] px-3 py-1.5 rounded text-sm text-[var(--text-primary)] hover:bg-[var(--accent-hover)]/10 transition  cursor-pointer"
+            >
+              <FileTextIcon size={16} /> My Posts
+            </button>
+          </div>
+        </div>
 
-      {/* Logout button */}
-      <div className="mt-10 flex justify-center gap-4 border-t border-gray pt-6">
-        <button
-          onClick={() => setShowLogoutModal(true)}
-          className="flex items-center gap-2 border px-4 py-2 rounded text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900 dark:text-red-400 cursor-pointer"
-        >
-          <LogOut size={18} /> Logout
-        </button>
-      </div>
-
-      {/* Logout confirmation modal */}
-      {showLogoutModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 p-6 rounded shadow-lg text-center">
-            <p className="text-lg mb-4">Are you sure you want to log out?</p>
-            <div className="flex justify-center gap-4">
-              <button
-                onClick={async () => {
-                  await logout();
-                  setShowLogoutModal(false);
-                  router.push("/login");
-                }}
-                className="bg-red-600 text-white px-4 py-2 rounded cursor-pointer"
-              >
-                Yes, logout
-              </button>
-              <button
-                onClick={() => setShowLogoutModal(false)}
-                className="border px-4 py-2 rounded cursor-pointer"
-              >
-                Cancel
-              </button>
+        {/* Details Section */}
+        <div className="mt-6 space-y-3">
+          <div className="flex items-center gap-2 text-[var(--text-secondary)]">
+            <MapPin size={16} className="flex-shrink-0" />
+            <span className="flex-1 break-words">
+              {profile.location || "No location set"}
+            </span>
+          </div>
+          <div className="flex items-center gap-2 text-[var(--text-secondary)]">
+            <Mail size={16} className="flex-shrink-0" />
+            <span className="flex-1 break-words">{profile.email}</span>
+          </div>
+          {profile.bio && (
+            <div className="flex items-start gap-2 mt-2 text-[var(--text-secondary)]">
+              <FileText size={16} className="flex-shrink-0 mt-1" />
+              <p className="flex-1 whitespace-pre-line break-words break-all overflow-hidden">
+                {profile.bio}
+              </p>
             </div>
-          </div>
+          )}
         </div>
-      )}
+
+        {/* Logout Button */}
+        <div className="mt-8 pt-4 border-t border-[var(--border-glass)] flex justify-center">
+          <button
+            onClick={() => setShowLogoutModal(true)}
+            className="flex items-center gap-2 border border-red-300 px-4 py-2 rounded text-sm text-red-600 hover:bg-red-50 cursor-pointer"
+          >
+            <LogOut size={18} /> Logout
+          </button>
+        </div>
+      </div>
+
+      {/* Logout Modal */}
+      <AnimatePresence>
+        {showLogoutModal && (
+          <motion.div
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="bg-[var(--card-bg)] border border-[var(--border-glass)] text-[var(--text-primary)] rounded-2xl p-6 max-w-sm w-11/12 shadow-xl"
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <h2 className="text-xl font-semibold mb-3 text-center">
+                Confirm Logout
+              </h2>
+              <p className="text-sm text-[var(--text-secondary)] mb-6 text-center">
+                Are you sure you want to log out?
+              </p>
+              <div className="flex justify-center gap-3">
+                <button
+                  onClick={() => setShowLogoutModal(false)}
+                  className="px-4 py-2 rounded-lg border border-[var(--border-glass)] bg-[var(--bg-glass)] hover:bg-[var(--accent-hover)]/10 transition text-sm text-[var(--text-primary)] cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={async () => {
+                    await logout();
+                    setShowLogoutModal(false);
+                    router.push("/login");
+                  }}
+                  className="px-4 py-2 rounded-lg border border-red-400 bg-red-100 text-red-700 hover:bg-red-200 transition text-sm cursor-pointer"
+                >
+                  Yes, Logout
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </main>
   );
 }

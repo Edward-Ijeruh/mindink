@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, ReactNode } from "react";
+import { useEffect, useState, ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Home, PenLine, User } from "lucide-react";
+import { Home, PenLine, User, Menu, X, Rss } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import Loader from "@/components/Loader";
+import { motion, AnimatePresence } from "framer-motion";
 
 const publicRoutes = ["/login", "/signup", "/forgotPassword"];
 
@@ -13,13 +14,13 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const isPublic = publicRoutes.includes(pathname);
   const isAuthenticated = !!user;
 
   useEffect(() => {
     if (!loading) {
-      const isPublic = publicRoutes.includes(pathname);
       if (!user && !isPublic) {
         router.push("/login");
       } else if (user && isPublic) {
@@ -33,12 +34,15 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
   }
 
   return (
-    <>
-      {/* Desktop Top Navbar */}
-      <header className="hidden md:block sticky top-0 z-50 bg-[var(--background)] border-b border-gray-800 px-6 py-4">
+    <div className="flex flex-col min-h-screen bg-[var(--bg-dark)] font-sans shadow-md text-[var(--text-primary)]">
+      {/* Header */}
+      <header className="hidden md:block sticky top-0 z-50 backdrop-blur-lg bg-[var(--bg-glass)] border-b border-[var(--border-glass)] shadow-md px-6 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <Link href="/" className="text-2xl font-bold">
-            EchoMind 🧠
+          <Link
+            href="/"
+            className="flex items-center text-2xl font-bold text-[var(--accent-main)]"
+          >
+            EchoMind <Rss />
           </Link>
           <nav className="flex space-x-8 items-center text-sm font-medium">
             <NavLink
@@ -63,7 +67,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
             ) : (
               <Link
                 href="/login"
-                className="text-blue-600 hover:underline flex gap-1 items-center"
+                className="text-[var(--accent-main)] hover:text-[var(--accent-hover)] flex gap-1 items-center"
               >
                 <User className="w-5 h-5" />
                 Login
@@ -73,47 +77,107 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
         </div>
       </header>
 
-      {/* Mobile Top Logo Bar */}
-      <div className="md:hidden sticky top-0 z-50 bg-[var(--background)] border-b border-gray-800 px-4 py-3 flex justify-center">
-        <Link href="/" className="text-xl font-bold">
-          EchoMind 🧠
-        </Link>
+      {/* Mobile Navbar */}
+      <div className="md:hidden sticky top-0 z-50 shadow-md">
+        {/* Navbar */}
+        <div className="relative z-50 backdrop-blur-lg bg-[var(--bg-glass)] border-b border-[var(--border-glass)] py-3 px-4 flex items-center justify-between">
+          <Link
+            href="/"
+            className="flex items-center text-xl font-bold text-[var(--accent-main)]"
+          >
+            EchoMind <Rss />
+          </Link>
+          <button
+            onClick={() => setMenuOpen((prev) => !prev)}
+            aria-label="Toggle menu"
+          >
+            {menuOpen ? (
+              <X className="h-6 w-6 text-[var(--text-primary)]" />
+            ) : (
+              <Menu className="h-6 w-6 text-[var(--text-primary)]" />
+            )}
+          </button>
+        </div>
+
+        {/* Dropdown */}
+        <AnimatePresence>
+          {menuOpen && (
+            <motion.div
+              key="mobile-dropdown"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.2 }}
+              className="absolute top-full left-0 w-full bg-[var(--bg-glass)] backdrop-blur-lg border-b border-[var(--border-glass)] shadow-lg z-40"
+            >
+              <nav className="flex flex-col p-4  space-y-4 text-[var(--text-primary)]">
+                <MobileNavLink
+                  href="/"
+                  icon={<Home />}
+                  text="Home"
+                  pathname={pathname}
+                  onClick={() => setMenuOpen(false)}
+                />
+                <MobileNavLink
+                  href="/write"
+                  icon={<PenLine />}
+                  text="Write"
+                  pathname={pathname}
+                  onClick={() => setMenuOpen(false)}
+                />
+                {isAuthenticated ? (
+                  <MobileNavLink
+                    href="/profile"
+                    icon={<User />}
+                    text="Profile"
+                    pathname={pathname}
+                    onClick={() => setMenuOpen(false)}
+                  />
+                ) : (
+                  <MobileNavLink
+                    href="/login"
+                    icon={<User />}
+                    text="Login"
+                    pathname={pathname}
+                    onClick={() => setMenuOpen(false)}
+                  />
+                )}
+              </nav>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Main Content */}
-      <main className="pb-20 max-w-4xl mx-auto px-4">{children}</main>
+      <main className="flex-1 max-w-6xl mx-auto w-full px-4 py-6">
+        {children}
+      </main>
 
-      {/* Mobile Bottom Navbar */}
-      <nav className="md:hidden fixed bottom-0 inset-x-0 z-50 bg-[var(--background)] border-t border-gray-800 flex justify-around py-2">
-        <NavButton
-          href="/"
-          icon={<Home className="w-5 h-5" />}
-          text="Home"
-          pathname={pathname}
-        />
-        <NavButton
-          href="/write"
-          icon={<PenLine className="w-5 h-5" />}
-          text="Write"
-          pathname={pathname}
-        />
-        {isAuthenticated ? (
-          <NavButton
-            href="/profile"
-            icon={<User className="w-5 h-5" />}
-            text="Profile"
-            pathname={pathname}
-          />
-        ) : (
-          <NavButton
-            href="/login"
-            icon={<User className="w-5 h-5" />}
-            text="Login"
-            pathname={pathname}
-          />
-        )}
-      </nav>
-    </>
+      {/* Footer */}
+      <footer className="bg-[var(--bg-glass)] border-t border-[var(--border-glass)] py-4 px-4 text-sm text-[var(--text-secondary)] backdrop-blur-md">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-2">
+          {/* Logo */}
+          <Link
+            href="/"
+            className="flex items-center text-lg font-bold text-[var(--accent-main)] hover:text-[var(--accent-hover)] transition-colors cursor-pointer"
+          >
+            EchoMind <Rss className="w-4 h-4" />
+          </Link>
+
+          {/* Built by */}
+          <p className="text-[var(--text-secondary)]">
+            &copy; {new Date().getFullYear()} · Built by{" "}
+            <Link
+              href="https://edwardijeruh.netlify.app/"
+              target="_blank"
+              className="text-[var(--accent-main)] hover:text-[var(--accent-hover)] font-medium cursor-pointer"
+            >
+              Edward Ijeruh
+            </Link>
+          </p>
+        </div>
+      </footer>
+    </div>
   );
 }
 
@@ -134,38 +198,43 @@ function NavLink({
     <Link
       href={href}
       className={`flex items-center space-x-1 transition-colors ${
-        isActive ? "text-blue-500" : "hover:text-blue-600"
+        isActive
+          ? "text-[var(--accent-main)]"
+          : "hover:text-[var(--accent-hover)] text-[var(--text-secondary)]"
       }`}
     >
-      <span className={`${isActive ? "text-blue-500" : ""}`}>{icon}</span>
+      {icon}
       <span>{text}</span>
     </Link>
   );
 }
 
-function NavButton({
+function MobileNavLink({
   href,
   icon,
   text,
   pathname,
+  onClick,
 }: {
   href: string;
   icon: React.ReactNode;
   text: string;
   pathname: string;
+  onClick: () => void;
 }) {
   const isActive = pathname === href;
 
   return (
     <Link
       href={href}
-      className={`flex flex-col items-center text-xs transition-colors ${
+      onClick={onClick}
+      className={`flex items-center space-x-2 py-2 px-2 rounded-md transition-colors ${
         isActive
-          ? "text-blue-500 font-semibold"
-          : "text-[var(--foreground)] hover:text-blue-600"
+          ? "text-[var(--accent-main)]"
+          : "text-[var(--text-secondary)] hover:text-[var(--accent-hover)]"
       }`}
     >
-      <span className={`${isActive ? "text-blue-500" : ""}`}>{icon}</span>
+      {icon}
       <span>{text}</span>
     </Link>
   );

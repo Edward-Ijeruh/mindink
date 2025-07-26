@@ -6,7 +6,7 @@ import { useAuth } from "@/context/useAuth";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { firestore } from "@/lib/firebase";
 import toast from "react-hot-toast";
-import { ArrowLeft } from "lucide-react";
+import { Edit } from "lucide-react";
 
 export default function EditProfilePage() {
   const { user } = useAuth();
@@ -40,7 +40,7 @@ export default function EditProfilePage() {
   }, [user]);
 
   const handleChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -57,7 +57,7 @@ export default function EditProfilePage() {
       await updateDoc(docRef, formData);
       localStorage.setItem(
         "userProfile",
-        JSON.stringify({ ...formData, email: user.email }),
+        JSON.stringify({ ...formData, email: user.email })
       );
       toast.success("Profile updated!");
       router.push("/profile");
@@ -69,57 +69,71 @@ export default function EditProfilePage() {
     }
   };
 
-  return (
-    <main className="max-w-md mx-auto mt-10 px-4">
-      <div className="flex items-center justify-between mb-6">
-        <button
-          onClick={() => router.back()}
-          className="flex items-center text-sm hover:underline cursor-pointer"
-          disabled={isSubmitting}
-        >
-          <ArrowLeft className="mr-1 w-5 h-5" />
-        </button>
-        <h1 className="text-xl font-semibold text-center flex-1">
-          Edit Profile
-        </h1>
-        <div className="w-8 md:w-12 lg:w-16" />
-      </div>
+  const handleCancel = () => router.push(`/profile}`);
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <input
-          type="text"
-          name="username"
-          placeholder="Username"
-          value={formData.username}
-          onChange={handleChange}
-          disabled={isSubmitting}
-          className="w-full px-4 py-2 border rounded"
-        />
-        <input
-          type="text"
-          name="location"
-          placeholder="Location"
-          value={formData.location}
-          onChange={handleChange}
-          disabled={isSubmitting}
-          className="w-full px-4 py-2 border rounded"
-        />
-        <textarea
-          name="bio"
-          placeholder="Bio"
-          value={formData.bio}
-          onChange={handleChange}
-          disabled={isSubmitting}
-          className="w-full px-4 py-2 border rounded h-24"
-        />
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-full bg-blue-600 cursor-pointer text-white py-2 rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isSubmitting ? "Saving..." : "Save Changes"}
-        </button>
-      </form>
+  return (
+    <main className="max-w-6xl mx-auto">
+      <div className="bg-[var(--card-bg)] border border-[var(--card-border)] shadow-[var(--card-shadow)] rounded-[var(--card-radius)] p-6">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="flex items-center gap-2 text-xl md:text-3xl font-bold text-[var(--text-primary)]">
+            Edit Profile <Edit className="w-6 h-6 md:w-8 md:h-8" />
+          </h1>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <input
+            type="text"
+            name="username"
+            placeholder="Username"
+            value={formData.username}
+            onChange={handleChange}
+            disabled={isSubmitting}
+            className="w-full px-4 py-2 border border-[var(--text-muted)] rounded-lg text-[var(--text-primary)]"
+          />
+          <input
+            type="text"
+            name="location"
+            placeholder="Location"
+            value={formData.location}
+            onChange={handleChange}
+            disabled={isSubmitting}
+            className="w-full px-4 py-2 border border-[var(--text-muted)] rounded-lg text-[var(--text-primary)]"
+          />
+          <textarea
+            name="bio"
+            placeholder="Bio"
+            value={formData.bio}
+            onChange={handleChange}
+            disabled={isSubmitting}
+            className="w-full px-4 py-2 border border-[var(--text-muted)] rounded-lg text-[var(--text-primary)] h-24"
+          />
+
+          {/* Buttons */}
+          <div className="flex gap-4">
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="flex-1 bg-[var(--accent-main)] text-white py-2 rounded-lg hover:bg-[var(--accent-hover)] transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSubmitting ? "Saving..." : "Save Changes"}
+            </button>
+            <button
+              type="button"
+              onClick={handleCancel}
+              className="flex-1 py-3 rounded font-medium transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{
+                backgroundColor: "var(--text-muted)",
+                color: "#fff",
+              }}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
     </main>
   );
 }
