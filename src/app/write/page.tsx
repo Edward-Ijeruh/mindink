@@ -60,12 +60,18 @@ export default function WritePage() {
     if (selectedImage) {
       const formData = new FormData();
       formData.append("file", selectedImage);
-      formData.append("upload_preset", "unsigned_upload");
-      formData.append("cloud_name", "dxprbozmm");
+      formData.append(
+        "upload_preset",
+        process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!
+      );
+      formData.append(
+        "cloud_name",
+        process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!
+      );
 
       try {
         const res = await fetch(
-          "https://api.cloudinary.com/v1_1/dxprbozmm/image/upload",
+          `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
           {
             method: "POST",
             body: formData,
@@ -127,7 +133,7 @@ export default function WritePage() {
           <input
             type="text"
             placeholder="Title"
-            className="w-full p-3 rounded border"
+            className="w-full p-3 rounded border focus:outline-none focus:ring-2 focus:ring-[var(--accent-main)]"
             style={{
               borderColor: "var(--text-muted)",
               color: "var(--text-primary)",
@@ -141,7 +147,7 @@ export default function WritePage() {
           {/* Content */}
           <textarea
             placeholder="Content..."
-            className="w-full p-3 h-40 rounded border"
+            className="w-full p-3 h-40 rounded border focus:outline-none focus:ring-2 focus:ring-[var(--accent-main)]"
             style={{
               borderColor: "var(--text-muted)",
               color: "var(--text-primary)",
@@ -158,7 +164,7 @@ export default function WritePage() {
             accept="image/*"
             onChange={handleImageChange}
             required
-            className="block w-1/2 p-2 text-sm rounded-lg border"
+            className="block w-1/2 p-2 text-sm rounded-lg border focus:outline-none focus:ring-2 focus:ring-[var(--accent-main)]"
             style={{
               borderColor: "var(--text-muted)",
               backgroundColor: "var(--bg-dark)",
@@ -174,7 +180,7 @@ export default function WritePage() {
               <img
                 src={previewUrl}
                 alt="Selected preview"
-                className="rounded-md w-full max-h-60 object-cover border"
+                className="rounded-md w-full max-h-80 max-w-80 object-cover border"
                 style={{ borderColor: "var(--card-border)" }}
               />
             </div>
@@ -188,14 +194,13 @@ export default function WritePage() {
             <input
               type="text"
               placeholder="Search tags..."
-              className="w-full p-2 mb-3 rounded border"
+              className="w-full p-2 mb-3 rounded border focus:outline-none focus:ring-2 focus:ring-[var(--accent-main)]"
               style={{
                 borderColor: "var(--text-muted)",
                 color: "var(--text-primary)",
               }}
               value={tagSearch}
               onChange={(e) => setTagSearch(e.target.value)}
-              required
             />
 
             <div className="flex flex-wrap gap-2 mb-3">

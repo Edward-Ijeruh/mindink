@@ -9,6 +9,7 @@ import toast from "react-hot-toast";
 import { Edit, Trash2, User2 } from "lucide-react";
 import Loader from "@/components/Loader";
 import { motion, AnimatePresence } from "framer-motion";
+import { navigateToFeed } from "@/lib/navigation";
 
 interface Post {
   id: string;
@@ -59,7 +60,7 @@ export default function PostDetailPage() {
     try {
       await deleteDoc(doc(firestore, "posts", id));
       toast.success("Post deleted");
-      router.push("/");
+      navigateToFeed(router);
     } catch (error) {
       console.error("Delete failed:", error);
       toast.error("Failed to delete post");
@@ -77,10 +78,10 @@ export default function PostDetailPage() {
   return (
     <main className="max-w-6xl mx-auto">
       <div className="relative bg-[var(--card-bg)] border border-[var(--card-border)] p-6 rounded-2xl shadow-md text-[var(--card-text)]">
-        {/* Top: Back Button & Actions */}
+        {/* Back Button & Actions */}
         <div className="flex justify-between items-center mb-4">
           <button
-            onClick={() => router.push("/")}
+            onClick={() => navigateToFeed(router)}
             className="text-[var(--accent-main)] hover:text-[var(--accent-hover)] text-sm font-medium underline underline-offset-2 cursor-pointer"
           >
             Back
@@ -111,7 +112,7 @@ export default function PostDetailPage() {
           <img
             src={post.image}
             alt={post.title}
-            className="w-full h-64 md:h-80 object-cover rounded-xl mb-6"
+            className="w-full h-72 md:h-80 object-cover rounded-xl mb-6"
           />
         )}
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
 import { firestore } from "@/lib/firebase";
 import { User2, Search } from "lucide-react";
@@ -18,10 +18,48 @@ interface Post {
 }
 
 export default function FeedPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   const [posts, setPosts] = useState<Post[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTag, setActiveTag] = useState<string | null>(null);
-  const router = useRouter();
+
+  //Gets query parameters on page mount
+  useEffect(() => {
+    const q = searchParams.get("q") || "";
+    const tag = searchParams.get("tag");
+
+    setSearchTerm(q);
+    setActiveTag(tag);
+  }, [searchParams]);
+
+  //Saves current filter to local storage
+  useEffect(() => {
+    localStorage.setItem(
+      "lastFeedFilters",
+      JSON.stringify({ searchTerm, activeTag })
+    );
+  }, [searchTerm, activeTag]);
+
+  //Functions for search bar state using url parameters
+  const updateURL = (newSearch: string, newTag: string | null) => {
+    const params = new URLSearchParams();
+    if (newSearch) params.set("q", newSearch);
+    if (newTag) params.set("tag", newTag);
+    router.replace(`/?${params.toString()}`);
+  };
+
+  const handleTagClick = (tag: string) => {
+    const newTag = activeTag === tag ? null : tag;
+    setActiveTag(newTag);
+    updateURL(searchTerm, newTag);
+  };
+
+  const handleSearch = (value: string) => {
+    setSearchTerm(value);
+    updateURL(value, activeTag);
+  };
 
   useEffect(() => {
     const postsRef = collection(firestore, "posts");
@@ -65,20 +103,20 @@ export default function FeedPage() {
         <h1 className="text-2xl md:text-3xl font-bold text-[var(--text-primary)]">
           Welcome to EchoMind
         </h1>
-        <p className="text-sm md:text-base text-[var(--text-secondary)] mt-2">
+        <p className="text-sm mx-4 md:text-base text-[var(--text-secondary)] mt-2">
           Discover insightful articles, explore topics you love, and join the
           conversation.
         </p>
       </div>
 
       {/* Search Bar */}
-      <div className="relative max-w-md mx-auto mb-2">
+      <div className="relative w-xs md:w-lg max-w-md mx-auto mb-2">
         <input
           type="text"
           placeholder="Search by tags (e.g., AI, Health)..."
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full pl-10 pr-4 py-2 rounded-lg border border-[var(--border-glass)] bg-[var(--bg-glass)] shadow-sm text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-main)]"
+          onChange={(e) => handleSearch(e.target.value)}
+          className="w-full pl-10 pr-4 py-2 rounded-lg border border-[var(--border-glass)] bg-[var(--bg-glass)] shadow-sm text-base text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-main)]"
         />
         <Search
           className="absolute left-3 top-2.5 text-[var(--text-muted)]"
@@ -92,9 +130,7 @@ export default function FeedPage() {
           {availableTags.map((tag) => (
             <button
               key={tag}
-              onClick={() =>
-                setActiveTag((prev) => (prev === tag ? null : tag))
-              }
+              onClick={() => handleTagClick(tag)}
               className={`px-3 py-1 rounded-full text-xs whitespace-nowrap cursor-pointer transition ${
                 activeTag === tag
                   ? "bg-[var(--accent-main)] text-white"
@@ -132,7 +168,7 @@ export default function FeedPage() {
                 <img
                   src={post.image}
                   alt={post.title}
-                  className="w-full h-48 object-cover rounded-xl mb-3"
+                  className="w-full h-55 object-cover rounded-xl mb-3"
                 />
               )}
 

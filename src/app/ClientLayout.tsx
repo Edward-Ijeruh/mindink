@@ -7,6 +7,7 @@ import { Home, PenLine, User, Menu, X, Rss } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import Loader from "@/components/Loader";
 import { motion, AnimatePresence } from "framer-motion";
+import { navigateToFeed } from "@/lib/navigation";
 
 const publicRoutes = ["/login", "/signup", "/forgotPassword"];
 
@@ -79,7 +80,6 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
 
       {/* Mobile Navbar */}
       <div className="md:hidden sticky top-0 z-50 shadow-md">
-        {/* Navbar */}
         <div className="relative z-50 backdrop-blur-lg bg-[var(--bg-glass)] border-b border-[var(--border-glass)] py-3 px-4 flex items-center justify-between">
           <Link
             href="/"
@@ -110,20 +110,20 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
               transition={{ duration: 0.2 }}
               className="absolute top-full left-0 w-full bg-[var(--bg-glass)] backdrop-blur-lg border-b border-[var(--border-glass)] shadow-lg z-40"
             >
-              <nav className="flex flex-col p-4  space-y-4 text-[var(--text-primary)]">
+              <nav className="flex flex-col p-4 space-y-4 text-[var(--text-primary)]">
                 <MobileNavLink
                   href="/"
                   icon={<Home />}
                   text="Home"
                   pathname={pathname}
-                  onClick={() => setMenuOpen(false)}
+                  onClose={() => setMenuOpen(false)}
                 />
                 <MobileNavLink
                   href="/write"
                   icon={<PenLine />}
                   text="Write"
                   pathname={pathname}
-                  onClick={() => setMenuOpen(false)}
+                  onClose={() => setMenuOpen(false)}
                 />
                 {isAuthenticated ? (
                   <MobileNavLink
@@ -131,7 +131,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
                     icon={<User />}
                     text="Profile"
                     pathname={pathname}
-                    onClick={() => setMenuOpen(false)}
+                    onClose={() => setMenuOpen(false)}
                   />
                 ) : (
                   <MobileNavLink
@@ -139,7 +139,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
                     icon={<User />}
                     text="Login"
                     pathname={pathname}
-                    onClick={() => setMenuOpen(false)}
+                    onClose={() => setMenuOpen(false)}
                   />
                 )}
               </nav>
@@ -156,15 +156,12 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
       {/* Footer */}
       <footer className="bg-[var(--bg-glass)] border-t border-[var(--border-glass)] py-4 px-4 text-sm text-[var(--text-secondary)] backdrop-blur-md">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-2">
-          {/* Logo */}
           <Link
             href="/"
             className="flex items-center text-lg font-bold text-[var(--accent-main)] hover:text-[var(--accent-hover)] transition-colors cursor-pointer"
           >
             EchoMind <Rss className="w-4 h-4" />
           </Link>
-
-          {/* Built by */}
           <p className="text-[var(--text-secondary)]">
             &copy; {new Date().getFullYear()} · Built by{" "}
             <Link
@@ -181,6 +178,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
   );
 }
 
+/* Desktop navlimk */
 function NavLink({
   href,
   icon,
@@ -192,7 +190,27 @@ function NavLink({
   text: string;
   pathname: string;
 }) {
+  const router = useRouter();
   const isActive = pathname === href;
+
+  if (href === "/") {
+    return (
+      <button
+        onClick={(e) => {
+          e.preventDefault();
+          navigateToFeed(router);
+        }}
+        className={`flex items-center space-x-1 transition-colors cursor-pointer ${
+          isActive
+            ? "text-[var(--accent-main)]"
+            : "hover:text-[var(--accent-hover)] text-[var(--text-secondary)]"
+        }`}
+      >
+        {icon}
+        <span>{text}</span>
+      </button>
+    );
+  }
 
   return (
     <Link
@@ -209,25 +227,47 @@ function NavLink({
   );
 }
 
+/* Mobile navlink */
 function MobileNavLink({
   href,
   icon,
   text,
   pathname,
-  onClick,
+  onClose,
 }: {
   href: string;
   icon: React.ReactNode;
   text: string;
   pathname: string;
-  onClick: () => void;
+  onClose: () => void;
 }) {
+  const router = useRouter();
   const isActive = pathname === href;
+
+  if (href === "/") {
+    return (
+      <button
+        onClick={(e) => {
+          e.preventDefault();
+          navigateToFeed(router);
+          onClose();
+        }}
+        className={`flex items-center space-x-2 py-2 px-2 rounded-md transition-colors ${
+          isActive
+            ? "text-[var(--accent-main)]"
+            : "text-[var(--text-secondary)] hover:text-[var(--accent-hover)]"
+        }`}
+      >
+        {icon}
+        <span>{text}</span>
+      </button>
+    );
+  }
 
   return (
     <Link
       href={href}
-      onClick={onClick}
+      onClick={onClose}
       className={`flex items-center space-x-2 py-2 px-2 rounded-md transition-colors ${
         isActive
           ? "text-[var(--accent-main)]"

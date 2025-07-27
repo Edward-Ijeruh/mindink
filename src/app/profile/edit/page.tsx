@@ -90,7 +90,7 @@ export default function EditProfilePage() {
             value={formData.username}
             onChange={handleChange}
             disabled={isSubmitting}
-            className="w-full px-4 py-2 border border-[var(--text-muted)] rounded-lg text-[var(--text-primary)]"
+            className="w-full px-4 py-2 border border-[var(--text-muted)] rounded-lg text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-main)]"
           />
           <input
             type="text"
@@ -99,7 +99,7 @@ export default function EditProfilePage() {
             value={formData.location}
             onChange={handleChange}
             disabled={isSubmitting}
-            className="w-full px-4 py-2 border border-[var(--text-muted)] rounded-lg text-[var(--text-primary)]"
+            className="w-full px-4 py-2 border border-[var(--text-muted)] rounded-lg text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-main)]"
           />
           <textarea
             name="bio"
@@ -107,7 +107,7 @@ export default function EditProfilePage() {
             value={formData.bio}
             onChange={handleChange}
             disabled={isSubmitting}
-            className="w-full px-4 py-2 border border-[var(--text-muted)] rounded-lg text-[var(--text-primary)] h-24"
+            className="w-full px-4 py-2 border border-[var(--text-muted)] rounded-lg text-[var(--text-primary)] h-24 focus:outline-none focus:ring-2 focus:ring-[var(--accent-main)]"
           />
 
           {/* Buttons */}
