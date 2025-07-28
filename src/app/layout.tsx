@@ -24,7 +24,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <AuthProvider>
           <Toaster
             containerClassName="text-xs md:text-sm"
-            position="bottom-center"
+            position="top-center"
           />
           <ClientLayout>{children}</ClientLayout>
         </AuthProvider>

@@ -6,6 +6,8 @@ import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
 import { firestore } from "@/lib/firebase";
 import { User2, Search } from "lucide-react";
 import { availableTags } from "@/lib/tags";
+import { useAuth } from "@/context/AuthContext";
+import toast from "react-hot-toast";
 
 interface Post {
   id: string;
@@ -18,12 +20,15 @@ interface Post {
 }
 
 export default function FeedPage() {
+  const { user } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const [posts, setPosts] = useState<Post[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTag, setActiveTag] = useState<string | null>(null);
+
+  const isAuthenticated = !!user;
 
   //Gets query parameters on page mount
   useEffect(() => {
@@ -38,7 +43,7 @@ export default function FeedPage() {
   useEffect(() => {
     localStorage.setItem(
       "lastFeedFilters",
-      JSON.stringify({ searchTerm, activeTag })
+      JSON.stringify({ searchTerm, activeTag }),
     );
   }, [searchTerm, activeTag]);
 
@@ -82,14 +87,16 @@ export default function FeedPage() {
     if (searchTerm.trim()) {
       results = results.filter((post) =>
         post.tags?.some((tag) =>
-          tag.toLowerCase().includes(searchTerm.toLowerCase())
-        )
+          tag.toLowerCase().includes(searchTerm.toLowerCase()),
+        ),
       );
     }
 
     if (activeTag) {
       results = results.filter((post) =>
-        post.tags?.map((t) => t.toLowerCase()).includes(activeTag.toLowerCase())
+        post.tags
+          ?.map((t) => t.toLowerCase())
+          .includes(activeTag.toLowerCase()),
       );
     }
 
@@ -143,7 +150,6 @@ export default function FeedPage() {
         </div>
       </div>
 
-      {/* Posts */}
       {filteredPosts.length === 0 ? (
         <p className="text-center text-[var(--text-muted)]">
           No posts match your search.
@@ -153,7 +159,14 @@ export default function FeedPage() {
           {filteredPosts.map((post) => (
             <div
               key={post.id}
-              onClick={() => router.push(`/posts/${post.id}`)}
+              onClick={() => {
+                if (!isAuthenticated) {
+                  toast("Please log in to read this post.");
+                  router.push("/login");
+                  return;
+                }
+                router.push(`/posts/${post.id}`);
+              }}
               className="p-6 cursor-pointer transition-shadow hover:shadow-md"
               style={{
                 backgroundColor: "var(--card-bg)",
@@ -182,7 +195,7 @@ export default function FeedPage() {
                   <span>
                     {post.createdAt
                       ? new Date(
-                          post.createdAt.seconds * 1000
+                          post.createdAt.seconds * 1000,
                         ).toLocaleDateString("en-US", {
                           year: "numeric",
                           month: "short",
@@ -221,6 +234,11 @@ export default function FeedPage() {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
+                      if (!isAuthenticated) {
+                        toast.error("Please log in to read this post.");
+                        router.push("/login");
+                        return;
+                      }
                       router.push(`/posts/${post.id}`);
                     }}
                     className="text-[var(--accent-main)] hover:text-[var(--accent-hover)] text-sm font-medium underline underline-offset-4 transition-colors cursor-pointer"

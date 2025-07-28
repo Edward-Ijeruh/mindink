@@ -8,8 +8,9 @@ import { useAuth } from "@/context/AuthContext";
 import Loader from "@/components/Loader";
 import { motion, AnimatePresence } from "framer-motion";
 import { navigateToFeed } from "@/lib/navigation";
+import toast from "react-hot-toast";
 
-const publicRoutes = ["/login", "/signup", "/forgotPassword"];
+const publicRoutes = ["/", "/login", "/signup", "/forgotPassword"];
 
 export default function ClientLayout({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
@@ -22,15 +23,13 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!loading) {
-      if (!user && !isPublic) {
+      if (!user && !isPublic && pathname !== "/") {
         router.push("/login");
-      } else if (user && isPublic) {
-        router.push("/");
       }
     }
-  }, [user, loading, pathname, router]);
+  }, [user, loading, pathname, router, isPublic]);
 
-  if (loading || (!isPublic && !isAuthenticated)) {
+  if (loading) {
     return <Loader />;
   }
 
@@ -51,29 +50,22 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
               icon={<Home className="w-5 h-5" />}
               text="Home"
               pathname={pathname}
+              isAuthenticated={isAuthenticated}
             />
             <NavLink
               href="/write"
               icon={<PenLine className="w-5 h-5" />}
               text="Write"
               pathname={pathname}
+              isAuthenticated={isAuthenticated}
             />
-            {isAuthenticated ? (
-              <NavLink
-                href="/profile"
-                icon={<User className="w-5 h-5" />}
-                text="Profile"
-                pathname={pathname}
-              />
-            ) : (
-              <Link
-                href="/login"
-                className="text-[var(--accent-main)] hover:text-[var(--accent-hover)] flex gap-1 items-center"
-              >
-                <User className="w-5 h-5" />
-                Login
-              </Link>
-            )}
+            <NavLink
+              href="/profile"
+              icon={<User className="w-5 h-5" />}
+              text={isAuthenticated ? "Profile" : "Login"}
+              pathname={pathname}
+              isAuthenticated={isAuthenticated}
+            />
           </nav>
         </div>
       </header>
@@ -117,6 +109,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
                   text="Home"
                   pathname={pathname}
                   onClose={() => setMenuOpen(false)}
+                  isAuthenticated={isAuthenticated}
                 />
                 <MobileNavLink
                   href="/write"
@@ -124,24 +117,16 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
                   text="Write"
                   pathname={pathname}
                   onClose={() => setMenuOpen(false)}
+                  isAuthenticated={isAuthenticated}
                 />
-                {isAuthenticated ? (
-                  <MobileNavLink
-                    href="/profile"
-                    icon={<User />}
-                    text="Profile"
-                    pathname={pathname}
-                    onClose={() => setMenuOpen(false)}
-                  />
-                ) : (
-                  <MobileNavLink
-                    href="/login"
-                    icon={<User />}
-                    text="Login"
-                    pathname={pathname}
-                    onClose={() => setMenuOpen(false)}
-                  />
-                )}
+                <MobileNavLink
+                  href={isAuthenticated ? "/profile" : "/login"}
+                  icon={<User />}
+                  text={isAuthenticated ? "Profile" : "Login"}
+                  pathname={pathname}
+                  onClose={() => setMenuOpen(false)}
+                  isAuthenticated={isAuthenticated}
+                />
               </nav>
             </motion.div>
           )}
@@ -178,44 +163,41 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
   );
 }
 
-/* Desktop navlimk */
+/* Desktop NavLink */
 function NavLink({
   href,
   icon,
   text,
   pathname,
+  isAuthenticated,
 }: {
   href: string;
   icon: React.ReactNode;
   text: string;
   pathname: string;
+  isAuthenticated: boolean;
 }) {
   const router = useRouter();
   const isActive = pathname === href;
 
-  if (href === "/") {
-    return (
-      <button
-        onClick={(e) => {
-          e.preventDefault();
-          navigateToFeed(router);
-        }}
-        className={`flex items-center space-x-1 transition-colors cursor-pointer ${
-          isActive
-            ? "text-[var(--accent-main)]"
-            : "hover:text-[var(--accent-hover)] text-[var(--text-secondary)]"
-        }`}
-      >
-        {icon}
-        <span>{text}</span>
-      </button>
-    );
-  }
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if ((href === "/write" || href === "/profile") && !isAuthenticated) {
+      toast("Please log in to continue.");
+      router.push("/login");
+      return;
+    }
+    if (href === "/") {
+      navigateToFeed(router);
+      return;
+    }
+    router.push(href);
+  };
 
   return (
-    <Link
-      href={href}
-      className={`flex items-center space-x-1 transition-colors ${
+    <button
+      onClick={handleClick}
+      className={`flex items-center space-x-1 transition-colors cursor-pointer ${
         isActive
           ? "text-[var(--accent-main)]"
           : "hover:text-[var(--accent-hover)] text-[var(--text-secondary)]"
@@ -223,26 +205,40 @@ function NavLink({
     >
       {icon}
       <span>{text}</span>
-    </Link>
+    </button>
   );
 }
 
-/* Mobile navlink */
+/* Mobile NavLink */
 function MobileNavLink({
   href,
   icon,
   text,
   pathname,
   onClose,
+  isAuthenticated,
 }: {
   href: string;
   icon: React.ReactNode;
   text: string;
   pathname: string;
   onClose: () => void;
+  isAuthenticated: boolean;
 }) {
   const router = useRouter();
   const isActive = pathname === href;
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if ((href === "/write" || href === "/profile") && !isAuthenticated) {
+      toast("Please log in to continue.");
+      router.push("/login");
+      onClose();
+      return;
+    }
+    router.push(href);
+    onClose();
+  };
 
   if (href === "/") {
     return (
@@ -265,9 +261,8 @@ function MobileNavLink({
   }
 
   return (
-    <Link
-      href={href}
-      onClick={onClose}
+    <button
+      onClick={handleClick}
       className={`flex items-center space-x-2 py-2 px-2 rounded-md transition-colors ${
         isActive
           ? "text-[var(--accent-main)]"
@@ -276,6 +271,6 @@ function MobileNavLink({
     >
       {icon}
       <span>{text}</span>
-    </Link>
+    </button>
   );
 }
