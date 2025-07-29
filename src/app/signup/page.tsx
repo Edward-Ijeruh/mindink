@@ -14,7 +14,7 @@ interface SignupFormData {
 }
 
 export default function SignupPage() {
-  const { signup } = useAuth();
+  const { signup, loginWithGoogle } = useAuth();
   const [formData, setFormData] = useState<SignupFormData>({
     email: "",
     password: "",
@@ -53,6 +53,19 @@ export default function SignupPage() {
       } else {
         setError("Signup failed. Please try again.");
       }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    try {
+      await loginWithGoogle();
+      toast.success("Signed up with Google!");
+    } catch (err: unknown) {
+      toast.error("Google signup failed. Please try again.");
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -124,9 +137,6 @@ export default function SignupPage() {
             </button>
           </div>
 
-          {/* Error */}
-          {error && <p className="text-red-500 text-sm text-center">{error}</p>}
-
           {/* Submit */}
           <button
             type="submit"
@@ -136,7 +146,27 @@ export default function SignupPage() {
             {loading ? "Signing up..." : "Sign Up"}
           </button>
 
-          {/* Login Link */}
+          {/* Divider */}
+          <div className="flex items-center gap-2 text-sm text-gray-400">
+            <hr className="flex-1 border-gray-300" />
+            <span className="text-xs">OR</span>
+            <hr className="flex-1 border-gray-300" />
+          </div>
+
+          {/* Google login */}
+          <button
+            type="button"
+            onClick={handleGoogleLogin}
+            disabled={loading}
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-md border border-[var(--text-muted)] bg-white text-[var(--text-primary)] hover:bg-gray-100 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          >
+            <span>Continue with Google</span>
+          </button>
+
+          {/* Error */}
+          {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+
+          {/* Link */}
           <p className="text-sm text-center mt-4 text-[var(--text-secondary)]">
             Already have an account?{" "}
             <Link

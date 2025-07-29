@@ -100,7 +100,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.2 }}
-              className="absolute top-full left-0 w-full bg-[var(--bg-glass)] backdrop-blur-lg border-b border-[var(--border-glass)] shadow-lg z-40"
+              className="absolute top-full left-0 w-full h-screen bg-[var(--bg-glass)] backdrop-blur-lg border-b border-[var(--border-glass)] shadow-lg z-40"
             >
               <nav className="flex flex-col p-4 space-y-4 text-[var(--text-primary)]">
                 <MobileNavLink

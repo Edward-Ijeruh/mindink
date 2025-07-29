@@ -8,7 +8,7 @@ import toast from "react-hot-toast";
 import { Eye, EyeOff, DoorOpen } from "lucide-react";
 
 export default function LoginPage() {
-  const { user, login } = useAuth();
+  const { user, login, loginWithGoogle } = useAuth();
   const router = useRouter();
 
   const [email, setEmail] = useState("");
@@ -47,6 +47,19 @@ export default function LoginPage() {
         default:
           setError("Login failed. Please try again.");
       }
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      setLoading(true);
+      await loginWithGoogle();
+      toast.success("Logged in with Google!");
+    } catch (err) {
+      toast.error("Google login failed. Please try again.");
+      console.error(err);
+    } finally {
       setLoading(false);
     }
   };
@@ -100,6 +113,23 @@ export default function LoginPage() {
             className="w-full cursor-pointer py-3 rounded-md text-white bg-[var(--accent-main)] hover:bg-[var(--accent-hover)] transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? "Logging in..." : "Login"}
+          </button>
+
+          {/* Divider */}
+          <div className="flex items-center gap-2 text-sm text-gray-400">
+            <hr className="flex-1 border-gray-300" />
+            <span className="text-xs">OR</span>
+            <hr className="flex-1 border-gray-300" />
+          </div>
+
+          {/* Google login */}
+          <button
+            type="button"
+            onClick={handleGoogleLogin}
+            disabled={loading}
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-md border border-[var(--text-muted)] bg-white text-[var(--text-primary)] hover:bg-gray-100 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          >
+            <span>Continue with Google</span>
           </button>
 
           {/* Error */}

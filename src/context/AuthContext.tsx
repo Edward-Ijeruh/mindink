@@ -8,13 +8,15 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   sendPasswordResetEmail,
+  GoogleAuthProvider,
+  signInWithPopup,
+  updateProfile,
 } from "firebase/auth";
 import { auth } from "@/lib/firebase";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { firestore } from "@/lib/firebase";
-import { updateProfile } from "firebase/auth";
 
-//The contexts properties
+// The context's properties
 interface AuthContextProps {
   user: User | null;
   loading: boolean;
@@ -22,19 +24,20 @@ interface AuthContextProps {
   signup: (
     email: string,
     password: string,
-    profileData: AdditionalProfileData
+    profileData: AdditionalProfileData,
   ) => Promise<void>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
 }
 
-//Additional data for the user signup
+// Additional data for the user signup
 interface AdditionalProfileData {
   username: string;
   location?: string;
 }
 
-//Context created with default values as a fallback
+// Context created with default values as a fallback
 export const AuthContext = createContext<AuthContextProps>({
   user: null,
   loading: true,
@@ -42,31 +45,29 @@ export const AuthContext = createContext<AuthContextProps>({
   signup: async () => {},
   logout: async () => {},
   resetPassword: async () => {},
+  loginWithGoogle: async () => {},
 });
 
-//The provider component for user authentication and update/edit functions
+// The provider component
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  //Login function
   const login = async (email: string, password: string) => {
     await signInWithEmailAndPassword(auth, email, password);
   };
 
-  //Signup function
   const signup = async (
     email: string,
     password: string,
-    profileData: AdditionalProfileData
+    profileData: AdditionalProfileData,
   ): Promise<void> => {
     setLoading(true);
-
     try {
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         email,
-        password
+        password,
       );
       const user = userCredential.user;
 
@@ -90,7 +91,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           username: profileData.username,
           location: profileData.location || "",
           profileImage: "",
-        })
+        }),
       );
 
       setUser(user);
@@ -110,7 +111,38 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     await sendPasswordResetEmail(auth, email);
   };
 
-  //Listening for user login or logout
+  const loginWithGoogle = async () => {
+    const provider = new GoogleAuthProvider();
+    const result = await signInWithPopup(auth, provider);
+    const user = result.user;
+
+    const userRef = doc(firestore, "users", user.uid);
+    const userSnap = await getDoc(userRef);
+
+    if (!userSnap.exists()) {
+      await setDoc(userRef, {
+        email: user.email,
+        username: user.displayName || "",
+        location: "",
+        profileImage: user.photoURL || "",
+        createdAt: serverTimestamp(),
+      });
+    }
+
+    localStorage.setItem(
+      "userProfile",
+      JSON.stringify({
+        uid: user.uid,
+        email: user.email,
+        username: user.displayName || "",
+        location: "",
+        profileImage: user.photoURL || "",
+      }),
+    );
+
+    setUser(user);
+  };
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       setUser(firebaseUser || null);
@@ -120,10 +152,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => unsubscribe();
   }, []);
 
-  //Main provider
   return (
     <AuthContext.Provider
-      value={{ user, loading, login, signup, logout, resetPassword }}
+      value={{
+        user,
+        loading,
+        login,
+        signup,
+        logout,
+        resetPassword,
+        loginWithGoogle,
+      }}
     >
       {children}
     </AuthContext.Provider>
