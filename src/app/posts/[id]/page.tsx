@@ -6,10 +6,12 @@ import { doc, getDoc, deleteDoc } from "firebase/firestore";
 import { firestore } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import toast from "react-hot-toast";
-import { Edit, Trash2, User2 } from "lucide-react";
+import { Edit, Trash2, User2, Heart, Share2, Check } from "lucide-react";
 import Loader from "@/components/Loader";
 import { motion, AnimatePresence } from "framer-motion";
 import { navigateToFeed } from "@/lib/navigation";
+import { toggleLike } from "@/lib/postInteractions/postInteractionFxns/like";
+import { usePostLike } from "@/lib/postInteractions/postInteractionHooks/usePostLike";
 
 interface Post {
   id: string;
@@ -32,6 +34,8 @@ export default function PostDetailPage() {
   const { user } = useAuth();
   const [post, setPost] = useState<Post | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const { liked, likeCount, setLiked } = usePostLike(id, user?.uid || "");
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -69,6 +73,30 @@ export default function PostDetailPage() {
 
   const handleEdit = () => {
     router.push(`/edit/${post?.id}`);
+  };
+
+  const handleShare = async () => {
+    const url = window.location.href;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: post?.title,
+          text: "Check out this post!",
+          url,
+        });
+      } catch (err) {
+        console.error("Share canceled or failed", err);
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(url);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } catch (err) {
+        console.error("Copy failed", err);
+      }
+    }
   };
 
   if (!post) return <Loader />;
@@ -130,7 +158,7 @@ export default function PostDetailPage() {
                     year: "numeric",
                     month: "short",
                     day: "numeric",
-                  }
+                  },
                 )
               : "Unknown"}
           </span>
@@ -158,6 +186,36 @@ export default function PostDetailPage() {
         {/* Content */}
         <div className="text-md text-[var(--text-secondary)] whitespace-pre-wrap mb-4">
           {post.content}
+        </div>
+
+        <div className="flex items-center gap-2 mt-6">
+          {/* Like Button */}
+          <button
+            onClick={async () => {
+              if (!user) return toast.error("Please sign in to like posts.");
+              const newState = await toggleLike(id, user.uid);
+              setLiked(newState);
+            }}
+            className="flex items-center gap-1 px-3 py-2 border border-[var(--border-glass)] rounded-xl text-sm transition-all hover:bg-[var(--accent-hover)]/10 cursor-pointer"
+          >
+            <Heart
+              className={`w-5 h-5 transition-all cursor-pointer ${
+                liked
+                  ? "fill-red-500 text-red-500"
+                  : "text-[var(--text-secondary)]"
+              }`}
+            />
+            <span className="text-[var(--text-secondary)]">{likeCount}</span>
+          </button>
+
+          {/* Share Button */}
+          <button
+            onClick={handleShare}
+            className="flex items-center gap-1 px-3 py-2 border border-[var(--border-glass)] rounded-xl text-sm transition-all hover:bg-[var(--accent-hover)]/10 cursor-pointer"
+          >
+            {copied ? <Check size={16} /> : <Share2 size={16} />}
+            <span>{copied ? "Copied!" : "Share"}</span>
+          </button>
         </div>
       </div>
 

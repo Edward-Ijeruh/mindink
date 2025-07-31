@@ -3,7 +3,15 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/useAuth";
 import { useRouter } from "next/navigation";
-import { doc, getDoc } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  collection,
+  query,
+  where,
+  getDocs,
+  orderBy,
+} from "firebase/firestore";
 import { firestore } from "@/lib/firebase";
 import {
   LogOut,
@@ -24,6 +32,17 @@ interface UserProfile {
   bio?: string;
 }
 
+interface Post {
+  id: string;
+  title: string;
+  content: string;
+  image?: string;
+  createdAt?: { seconds: number };
+  author: { name: string };
+  tags?: string[];
+  likeCount?: number;
+}
+
 export default function ProfilePage() {
   const { user, logout, loading } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -31,6 +50,35 @@ export default function ProfilePage() {
   const [profileLoading, setProfileLoading] = useState(true);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const router = useRouter();
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [postsLoading, setPostsLoading] = useState(true);
+
+  //Listen for users posts
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchPosts = async () => {
+      try {
+        const q = query(
+          collection(firestore, "posts"),
+          where("author.id", "==", user.uid),
+          orderBy("createdAt", "desc"),
+        );
+        const querySnapshot = await getDocs(q);
+        const postsData = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...(doc.data() as Omit<Post, "id">),
+        }));
+        setPosts(postsData);
+      } catch (error) {
+        console.error("Error fetching posts:", error);
+      } finally {
+        setPostsLoading(false);
+      }
+    };
+
+    fetchPosts();
+  }, [user]);
 
   useEffect(() => {
     if (loading) return;
@@ -114,12 +162,6 @@ export default function ProfilePage() {
             >
               <Pencil size={16} /> Edit Profile
             </button>
-            <button
-              onClick={() => router.push("/profile/posts")}
-              className="flex items-center gap-1 border border-[var(--border-glass)] px-3 py-1.5 rounded text-sm text-[var(--text-primary)] hover:bg-[var(--accent-hover)]/10 transition  cursor-pointer"
-            >
-              <FileTextIcon size={16} /> My Posts
-            </button>
           </div>
         </div>
 
@@ -138,15 +180,53 @@ export default function ProfilePage() {
           {profile.bio && (
             <div className="flex items-start gap-2 mt-2 text-[var(--text-secondary)]">
               <FileText size={16} className="flex-shrink-0 mt-1" />
-              <p className="flex-1 whitespace-pre-line break-words break-all overflow-hidden">
+              <p className="flex-1 whitespace-pre-line break-words overflow-hidden">
                 {profile.bio}
               </p>
             </div>
           )}
         </div>
 
+        {/* User's Posts Section */}
+        <div className="mt-6 border-t border-[var(--border-glass)]">
+          <h2 className="flex items-center justify-center gap-2 text-xl md:text-2xl font-bold text-[var(--text-primary)] pt-6 pb-4">
+            My Posts{" "}
+            <FileTextIcon size={20} className="w-6 h-6 md:w-6 md:h-6" />
+          </h2>
+
+          {postsLoading ? (
+            <Loader />
+          ) : posts.length === 0 ? (
+            <p className="text-center text-[var(--text-muted)]">
+              You haven’t written any posts yet.
+            </p>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4">
+              {posts.map((post) => (
+                <div
+                  key={post.id}
+                  onClick={() => router.push(`/posts/${post.id}`)}
+                  className="cursor-pointer group"
+                >
+                  {post.image ? (
+                    <img
+                      src={post.image}
+                      alt={post.title}
+                      className="w-full h-40 object-cover rounded-lg transition-transform duration-200 group-hover:scale-105"
+                    />
+                  ) : (
+                    <div className="w-full h-40 bg-[var(--bg-muted)] rounded-lg flex items-center justify-center text-[var(--text-muted)] text-sm">
+                      No Image
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
         {/* Logout Button */}
-        <div className="mt-8 pt-4 border-t border-[var(--border-glass)] flex justify-center">
+        <div className="mt-6 pt-6 border-t border-[var(--border-glass)] flex justify-center">
           <button
             onClick={() => setShowLogoutModal(true)}
             className="flex items-center gap-2 border border-red-300 px-4 py-2 rounded text-sm text-red-600 hover:bg-red-50 cursor-pointer"

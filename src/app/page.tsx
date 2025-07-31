@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
 import { firestore } from "@/lib/firebase";
-import { User2, Search } from "lucide-react";
+import { User2, Search, Heart, Share2, Check } from "lucide-react";
 import { availableTags } from "@/lib/tags";
 import { useAuth } from "@/context/AuthContext";
 import toast from "react-hot-toast";
@@ -17,6 +17,7 @@ interface Post {
   createdAt?: { seconds: number };
   author: { name: string };
   tags?: string[];
+  likeCount?: number;
 }
 
 export default function FeedPage() {
@@ -27,19 +28,17 @@ export default function FeedPage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTag, setActiveTag] = useState<string | null>(null);
+  const [copiedPostId, setCopiedPostId] = useState<string | null>(null);
 
   const isAuthenticated = !!user;
 
-  //Gets query parameters on page mount
   useEffect(() => {
     const q = searchParams.get("q") || "";
     const tag = searchParams.get("tag");
-
     setSearchTerm(q);
     setActiveTag(tag);
   }, [searchParams]);
 
-  //Saves current filter to local storage
   useEffect(() => {
     localStorage.setItem(
       "lastFeedFilters",
@@ -47,7 +46,6 @@ export default function FeedPage() {
     );
   }, [searchTerm, activeTag]);
 
-  //Functions for search bar state using url parameters
   const updateURL = (newSearch: string, newTag: string | null) => {
     const params = new URLSearchParams();
     if (newSearch) params.set("q", newSearch);
@@ -83,7 +81,6 @@ export default function FeedPage() {
 
   const filteredPosts = useMemo(() => {
     let results = [...posts];
-
     if (searchTerm.trim()) {
       results = results.filter((post) =>
         post.tags?.some((tag) =>
@@ -91,7 +88,6 @@ export default function FeedPage() {
         ),
       );
     }
-
     if (activeTag) {
       results = results.filter((post) =>
         post.tags
@@ -99,7 +95,6 @@ export default function FeedPage() {
           .includes(activeTag.toLowerCase()),
       );
     }
-
     return results;
   }, [posts, searchTerm, activeTag]);
 
@@ -150,6 +145,7 @@ export default function FeedPage() {
         </div>
       </div>
 
+      {/* Post Grid */}
       {filteredPosts.length === 0 ? (
         <p className="text-center text-[var(--text-muted)]">
           No posts match your search.
@@ -167,29 +163,27 @@ export default function FeedPage() {
                 }
                 router.push(`/posts/${post.id}`);
               }}
-              className="p-6 cursor-pointer transition-shadow hover:shadow-md"
+              className="p-4 cursor-pointer transition-shadow hover:shadow-md rounded-xl border"
               style={{
                 backgroundColor: "var(--card-bg)",
                 color: "var(--card-text)",
                 borderColor: "var(--card-border)",
-                borderRadius: "var(--card-radius)",
                 boxShadow: "var(--card-shadow)",
-                borderWidth: "1px",
               }}
             >
               {post.image && (
                 <img
                   src={post.image}
                   alt={post.title}
-                  className="w-full h-55 object-cover rounded-xl mb-3"
+                  className="w-full h-48 object-cover rounded-lg mb-4"
                 />
               )}
 
-              <div className="flex flex-col gap-2 flex-1">
-                {/* Details */}
-                <div className="flex items-center justify-between text-sm text-[var(--text-secondary)] pb-2 border-b border-[var(--border-glass)]">
+              <div className="flex flex-col gap-3">
+                {/* Author + Date */}
+                <div className="flex items-center justify-between text-xs text-[var(--text-secondary)] border-b border-[var(--border-glass)] pb-2">
                   <div className="flex items-center gap-2">
-                    <User2 size={15} />
+                    <User2 size={14} />
                     <span>{post.author?.name || "You"}</span>
                   </div>
                   <span>
@@ -229,8 +223,56 @@ export default function FeedPage() {
                   </div>
                 )}
 
+                {/* Like + Share Row */}
+                <div className="flex items-center justify-between text-sm text-[var(--text-secondary)] mt-2">
+                  <div className="flex items-center gap-2">
+                    <Heart size={16} className="text-[var(--accent-main)]" />
+                    <span>{post.likeCount || 0}</span>
+                  </div>
+
+                  <button
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      const url = `${window.location.origin}/posts/${post.id}`;
+                      if (navigator.share) {
+                        try {
+                          await navigator.share({
+                            title: post.title,
+                            text: post.content,
+                            url,
+                          });
+                        } catch (err) {
+                          console.error("Share failed or canceled", err);
+                        }
+                      } else {
+                        try {
+                          await navigator.clipboard.writeText(url);
+                          setCopiedPostId(post.id);
+                          setTimeout(() => setCopiedPostId(null), 2000);
+                          toast.success("Link copied to clipboard!");
+                        } catch (err) {
+                          console.error("Copy failed", err);
+                        }
+                      }
+                    }}
+                    className="text-xs text-[var(--accent-main)] hover:text-[var(--accent-hover)] flex items-center gap-1 transition"
+                  >
+                    {copiedPostId === post.id ? (
+                      <>
+                        <Check size={16} />
+                        <span>Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Share2 size={16} />
+                        <span>Share</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
                 {/* Read More */}
-                <div className="text-center mt-3 cursor-pointer">
+                <div className="text-center">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -241,7 +283,7 @@ export default function FeedPage() {
                       }
                       router.push(`/posts/${post.id}`);
                     }}
-                    className="text-[var(--accent-main)] hover:text-[var(--accent-hover)] text-sm font-medium underline underline-offset-4 transition-colors cursor-pointer"
+                    className="text-sm font-medium underline underline-offset-4 text-[var(--accent-main)] hover:text-[var(--accent-hover)] transition"
                   >
                     Read more
                   </button>

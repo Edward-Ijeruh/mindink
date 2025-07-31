@@ -40,7 +40,7 @@ export default function EditProfilePage() {
   }, [user]);
 
   const handleChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -57,7 +57,7 @@ export default function EditProfilePage() {
       await updateDoc(docRef, formData);
       localStorage.setItem(
         "userProfile",
-        JSON.stringify({ ...formData, email: user.email })
+        JSON.stringify({ ...formData, email: user.email }),
       );
       toast.success("Profile updated!");
       router.push("/profile");
@@ -69,7 +69,7 @@ export default function EditProfilePage() {
     }
   };
 
-  const handleCancel = () => router.push(`/profile}`);
+  const handleCancel = () => router.push(`/profile`);
 
   return (
     <main className="max-w-6xl mx-auto">
