@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
-import { auth, firestore } from "@/lib/firebase";
+import { firestore } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import toast from "react-hot-toast";
 import Loader from "@/components/Loader";
