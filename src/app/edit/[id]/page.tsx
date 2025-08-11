@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { firestore } from "@/lib/firebase";
+import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { auth, firestore } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import toast from "react-hot-toast";
 import Loader from "@/components/Loader";
@@ -96,51 +96,56 @@ export default function EditPostPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitting) return;
     setSubmitting(true);
 
-    let newImageUrl = imageUrl;
-
     try {
+      let finalImageUrl = imageUrl;
+
       if (selectedImage) {
-        if (imageUrl) {
-          await deleteFromCloudinary(imageUrl);
+        try {
+          if (imageUrl) await deleteFromCloudinary(imageUrl);
+
+          const formData = new FormData();
+          formData.append("file", selectedImage);
+          formData.append(
+            "upload_preset",
+            process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!
+          );
+          formData.append(
+            "cloud_name",
+            process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!
+          );
+
+          const res = await fetch(
+            `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
+            { method: "POST", body: formData }
+          );
+
+          const data = await res.json();
+          if (!data.secure_url) throw new Error("Cloudinary upload failed");
+          finalImageUrl = data.secure_url;
+        } catch (uploadErr) {
+          console.error("Image upload error:", uploadErr);
+          toast.error("Image upload failed.");
+          return;
         }
-
-        const formData = new FormData();
-        formData.append("file", selectedImage);
-        formData.append(
-          "upload_preset",
-          process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!
-        );
-        formData.append(
-          "cloud_name",
-          process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!
-        );
-        const res = await fetch(
-          `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
-          {
-            method: "POST",
-            body: formData,
-          }
-        );
-        const data = await res.json();
-
-        if (!data.secure_url) throw new Error("Cloudinary upload failed");
-        newImageUrl = data.secure_url;
       }
 
-      await updateDoc(doc(firestore, "posts", id), {
+      const updateData = {
         title,
         content,
-        image: newImageUrl,
-        tags: selectedTags,
-        updatedAt: new Date(),
-      });
+        image: finalImageUrl,
+        tags: selectedTags || [],
+        updatedAt: serverTimestamp(),
+      };
+
+      await updateDoc(doc(firestore, "posts", id), updateData);
 
       toast.success("Post updated!");
       router.push(`/posts/${id}`);
     } catch (err) {
-      console.error("Update failed:", err);
+      console.error("Post update error:", err);
       toast.error("Failed to update post.");
     } finally {
       setSubmitting(false);

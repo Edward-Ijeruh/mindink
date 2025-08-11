@@ -42,7 +42,7 @@ export default function FeedPage() {
   useEffect(() => {
     localStorage.setItem(
       "lastFeedFilters",
-      JSON.stringify({ searchTerm, activeTag }),
+      JSON.stringify({ searchTerm, activeTag })
     );
   }, [searchTerm, activeTag]);
 
@@ -84,15 +84,13 @@ export default function FeedPage() {
     if (searchTerm.trim()) {
       results = results.filter((post) =>
         post.tags?.some((tag) =>
-          tag.toLowerCase().includes(searchTerm.toLowerCase()),
-        ),
+          tag.toLowerCase().includes(searchTerm.toLowerCase())
+        )
       );
     }
     if (activeTag) {
       results = results.filter((post) =>
-        post.tags
-          ?.map((t) => t.toLowerCase())
-          .includes(activeTag.toLowerCase()),
+        post.tags?.map((t) => t.toLowerCase()).includes(activeTag.toLowerCase())
       );
     }
     return results;
@@ -112,7 +110,7 @@ export default function FeedPage() {
       </div>
 
       {/* Search Bar */}
-      <div className="relative w-xs md:w-lg max-w-md mx-auto mb-2">
+      <div className="relative w-xs md:w-lg mx-auto mb-2">
         <input
           type="text"
           placeholder="Search by tags (e.g., AI, Health)..."
@@ -189,7 +187,7 @@ export default function FeedPage() {
                   <span>
                     {post.createdAt
                       ? new Date(
-                          post.createdAt.seconds * 1000,
+                          post.createdAt.seconds * 1000
                         ).toLocaleDateString("en-US", {
                           year: "numeric",
                           month: "short",

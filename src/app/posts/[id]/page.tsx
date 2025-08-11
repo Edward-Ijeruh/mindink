@@ -109,7 +109,13 @@ export default function PostDetailPage() {
         {/* Back Button & Actions */}
         <div className="flex justify-between items-center mb-4">
           <button
-            onClick={() => navigateToFeed(router)}
+            onClick={() => {
+              if (window.history.length > 1) {
+                router.back();
+              } else {
+                router.push("/");
+              }
+            }}
             className="text-[var(--accent-main)] hover:text-[var(--accent-hover)] text-sm font-medium underline underline-offset-2 cursor-pointer"
           >
             Back
@@ -158,7 +164,7 @@ export default function PostDetailPage() {
                     year: "numeric",
                     month: "short",
                     day: "numeric",
-                  },
+                  }
                 )
               : "Unknown"}
           </span>
